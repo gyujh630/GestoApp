@@ -1,12 +1,12 @@
 import { useState } from "react";
 import FileInfo from "./FileInfo";
 
-function UploadBox (): JSX.Element{
+function UploadBox ({setFile}): JSX.Element{
 
   const [isActive, setActive] = useState(false);
   const [uploadedInfo, setUploadedInfo] = useState(null);
 
-  console.log()
+
   const setFileInfo = (file) => {
     const { name, size: byteSize, type } = file;
     const mbSize = (byteSize / (1024 * 1024)).toFixed(2) + 'mb';
@@ -15,7 +15,7 @@ function UploadBox (): JSX.Element{
 
   const handleUpload = ({ target }) => {
     const file = target.files[0];
-    console.log(file,'나의 파일은 이것이다~')
+    setFile(file);
     setFileInfo(file);  
   };
 
