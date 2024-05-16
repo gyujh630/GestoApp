@@ -156,9 +156,11 @@ code {
   width:100%;
   height:100%;
   background-color: black;
-  padding: 100px 20px;
+  padding: 100px 0 0 0 ;
   overflow-x: hidden;
-  overflow-y: scroll;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: row;
 }
 
 .topBar {
@@ -248,6 +250,21 @@ code {
 
 .preview_info .info_value {
   font-size: 14px;
+}
+
+.presentation_left {
+  width:24%;
+  height:100%;
+  overflow-y: scroll;
+  background-color: pink;
+}
+.presentation_right {
+  width:76%;
+  height:100%;
+  background-color: orange;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @media (max-width: 720px) {
