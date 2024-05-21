@@ -198,6 +198,12 @@ function Presentation(): JSX.Element {
         if (results.landmarks.length > 0) {
           predictGesture(results.landmarks) // 제스처 예측
         }
+        else {
+          const canvas = gestureRef.current
+          // console.log(canvas.offsetWidth)
+          const ctx = canvas.getContext('2d')
+          ctx.clearRect(0, 0, canvas.width, canvas.height)
+        }
       }
       requestAnimationFrame(detectHands) // 프레임 변하면 재귀적으로 호출(반복)
       // setTimeout(detectHands, 100)
