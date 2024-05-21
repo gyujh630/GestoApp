@@ -1,16 +1,18 @@
+import { Coordinate } from '../pages/Presentation'
+
 // 좌표 재설정
-function refactorCoordinate(x, y, z) {
+function refactorCoordinate(x, y, z): Array<number> {
   return [Math.abs(x * 100 - 100), Math.abs(y * 100 - 100), z * 100]
 }
 
 // 3차원 공간에서 두 점 사이의 벡터를 구하는 함수
-function getVector(x1, y1, z1, x2, y2, z2) {
+function getVector(x1, y1, z1, x2, y2, z2): Array<number> {
   // 방향: (x1, y1, z1) -> (x2, y2, z2)
   return [x2 - x1, y2 - y1, z2 - z1]
 }
 
 // 두 벡터 사이의 각도를 구하는 함수
-function getAngle(v1, v2) {
+function getAngle(v1, v2): number {
   // 내적 계산
   const dotProduct = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
 
@@ -25,17 +27,17 @@ function getAngle(v1, v2) {
   const radians = Math.acos(cosTheta)
 
   // 라디안 -> 도 단위 변환
-  const degrees = radians * (180 / Math.PI)
+  let degrees = radians * (180 / Math.PI)
 
   if (degrees > 180) {
     degrees = 360 - degrees
   }
 
-  return degrees.toFixed(1)
+  return Number(degrees.toFixed(1))
 }
 
 // 3차원 공간에서 두 점 사이의 거리 계산 함수
-function getDistance(x1, y1, z1, x2, y2, z2) {
+function getDistance(x1, y1, z1, x2, y2, z2): number {
   const deltaX = x2 - x1
   const deltaY = y2 - y1
   const deltaZ = z2 - z1
@@ -45,7 +47,7 @@ function getDistance(x1, y1, z1, x2, y2, z2) {
 }
 
 // 엄지를 제외한 손가락의 접힘 여부 판단
-function isFingerFold(landmarks, fingerNum, angle1, angle2, angle3) {
+function isFingerFold(landmarks, fingerNum, angle1, angle2, angle3): boolean {
   // Finger Index: (1) 검지, (2) 중지, (3) 약지, (4) 새끼
 
   const wrist = landmarks[0] // 손목
@@ -54,8 +56,8 @@ function isFingerFold(landmarks, fingerNum, angle1, angle2, angle3) {
   const node3 = landmarks[3 + 4 * fingerNum] // 세 번째 관절
   const node4 = landmarks[4 + 4 * fingerNum] // 손가락 끝
 
-  let nodes = [wrist, node1, node2, node3, node4]
-  let angles = [0, 0, 0] // 각도 관계는 총 3가지, (wrist, n1)과 (n1, n2), (n1, n2)와 (n2, n3), (n2, n3)과 (n3, n4)
+  const nodes = [wrist, node1, node2, node3, node4]
+  const angles: Array<number> = [0, 0, 0] // 각도 관계는 총 3가지, (wrist, n1)과 (n1, n2), (n1, n2)와 (n2, n3), (n2, n3)과 (n3, n4)
 
   for (let i = 0; i < 5; i++) {
     nodes[i] = refactorCoordinate(nodes[i].x, nodes[i].y, nodes[i].z) // 각 노드(랜드마크) 좌표 재구성
@@ -79,7 +81,7 @@ function isFingerFold(landmarks, fingerNum, angle1, angle2, angle3) {
   } else return false
 }
 
-function isFingerStraight(landmarks, fingerNum) {
+function isFingerStraight(landmarks, fingerNum): boolean {
   // Finger Index: (1) 검지, (2) 중지, (3) 약지, (4) 새끼
 
   let wrist = landmarks[0]
@@ -88,8 +90,8 @@ function isFingerStraight(landmarks, fingerNum) {
   const node3 = landmarks[3 + 4 * fingerNum] // 세 번째 관절
   const node4 = landmarks[4 + 4 * fingerNum] // 손가락 끝
 
-  let nodes = [node1, node2, node3, node4]
-  let angles = [0, 0] // 각도 관계는 총 2가지, (n1, n2)와 (n2, n3), (n2, n3)과 (n3, n4)
+  const nodes = [node1, node2, node3, node4]
+  const angles = [0, 0] // 각도 관계는 총 2가지, (n1, n2)와 (n2, n3), (n2, n3)과 (n3, n4)
 
   wrist = refactorCoordinate(wrist.x, wrist.y, wrist.z)
   for (let i = 0; i < 4; i++) {
@@ -115,7 +117,7 @@ function isFingerStraight(landmarks, fingerNum) {
 }
 
 // 엄지 끝과 특정 손가락 끝이 붙어있는지 판단하는 함수
-function areTipsTouching(landmarks, fingerNum, distance) {
+function areTipsTouching(landmarks, fingerNum, distance): boolean {
   let thumb_tip = landmarks[4]
   let other_tip = landmarks[4 * fingerNum + 4]
 
@@ -136,7 +138,7 @@ function areTipsTouching(landmarks, fingerNum, distance) {
 }
 
 // 엄지 끝과 특정 손가락 끝이 서로 바라보는 방향인지 판단하는 함수
-export function areTipsFacing(landmarks, fingerNum) {
+export function areTipsFacing(landmarks, fingerNum): boolean {
   let dip = refactorCoordinate(
     landmarks[4 * fingerNum + 3].x,
     landmarks[4 * fingerNum + 3].y,
@@ -158,7 +160,7 @@ export function areTipsFacing(landmarks, fingerNum) {
   } else return false
 }
 
-export function getGesture(landmarks) {
+export function getGesture(landmarks): string {
   let first_hand = landmarks[0]
   let second_hand = undefined
   if (landmarks.length > 1) {
@@ -218,7 +220,7 @@ export function getGesture(landmarks) {
 }
 
 // 캔버스에 그려야하는 포인터 좌표를 반환 (POINTER)
-export function getPointer(landmarks, canvas) {
+export function getPointer(landmarks, canvas): Coordinate {
   let pointer = landmarks[0][8]
   pointer = refactorCoordinate(pointer.x, pointer.y, pointer.z)
   const percentX = pointer[0]
@@ -229,7 +231,7 @@ export function getPointer(landmarks, canvas) {
 }
 
 // 줌 거리 반환 (두 손 엄지 사이)
-export function getZoomDistance(landmarks) {
+export function getZoomDistance(landmarks): number {
   const fst_hand = landmarks[0]
   const sec_hand = landmarks[1]
   const fst_idx = refactorCoordinate(fst_hand[4].x, fst_hand[4].y, fst_hand[4].z)
@@ -238,7 +240,7 @@ export function getZoomDistance(landmarks) {
 }
 
 // 캔버스에 그려야하는 포인터 좌표를 반환 (ZOOM, ZOOM_POINTER)
-export function getZoomPointer(landmarks, canvas) {
+export function getZoomPointer(landmarks, canvas): Coordinate {
   if (landmarks[1] != undefined) {
     const fst_hand = landmarks[0]
     const sec_hand = landmarks[1]
@@ -258,4 +260,16 @@ export function getZoomPointer(landmarks, canvas) {
 
     return { x: canvasX, y: canvasY }
   } else return { x: null, y: null }
+}
+
+export function interpolate(window_size): number {
+  // 기준이 되는 범위 설정
+  const start: number = 500
+  const end: number = 1300
+
+  // 기준이 되는 숫자의 범위 설정
+  const minVal = 30
+  const maxVal = 40
+
+  return minVal + ((maxVal - minVal) * (window_size - start)) / (end - start)
 }

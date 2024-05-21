@@ -4,7 +4,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import NavBar from "./components/NavBar";
 import Presentation from "./pages/Presentation";
 import PreparePresentation from "./pages/PreparePresentation";
-import RecognizeGesture from "./pages/RecognizeGesture";
+// import RecognizeGesture from "./pages/RecognizeGesture";
 
 const Router = () => {
     return (
@@ -17,7 +17,7 @@ const Router = () => {
             <Route path="/RenderPdf" element={<RenderPdf/>}/>
             <Route path="/Presentation" element={<Presentation/>}/>
             <Route path="/PreparePresentation" element={<PreparePresentation/>}/>
-            <Route path="/RecognizeGesture" element={<RecognizeGesture/>}/>
+            {/* <Route path="/RecognizeGesture" element={<RecognizeGesture/>}/> */}
           </Routes>
           </div>
       </div>
