@@ -176,13 +176,14 @@ export function getGesture(landmarks): string {
   if (second_hand == undefined) {
     /* HOLD */
     if (
-      isFingerFold(first_hand, 3, 20, 45, 0) ||
-      isFingerFold(first_hand, 4, 20, 45, 0) ||
-      (isFingerFold(first_hand, 2, 20, 45, 0) && areTipsFacing(first_hand, 1))
+      isFingerFold(first_hand, 3, 20, 45, 10) &&
+      isFingerFold(first_hand, 4, 20, 45, 10) &&
+      isFingerFold(first_hand, 2, 20, 45, 10) &&
+      areTipsFacing(first_hand, 1)
     ) {
       if (areTipsTouching(first_hand, 1, 5)) {
         return 'HOLD'
-      } else if (areTipsTouching(first_hand, 1, 12)) {
+      } else if (areTipsTouching(first_hand, 1, 10)) {
         return 'POINTER'
       }
     }
@@ -230,6 +231,24 @@ export function getPointer(landmarks, canvas): Coordinate {
   return { x: canvasX, y: canvasY }
 }
 
+// 캔버스에 그려야하는 포인터 좌표를 반환 (HOLD_POINTER)
+export function getHoldPointer(landmarks, canvas): Coordinate {
+  const hand = landmarks[0]
+  const idx_tip = refactorCoordinate(hand[8].x, hand[8].y, hand[8].z)
+  const thumb_tip = refactorCoordinate(hand[4].x, hand[4].y, hand[4].z)
+
+  const sumX = idx_tip[0] + thumb_tip[0]
+  const sumY = idx_tip[1] + thumb_tip[1]
+
+  const centerX = sumX / 2
+  const centerY = sumY / 2
+
+  const canvasX = canvas.width * (centerX / 100)
+  const canvasY = canvas.height * (1 - centerY / 100)
+
+  return { x: canvasX, y: canvasY }
+}
+
 // 줌 거리 반환 (두 손 엄지 사이)
 export function getZoomDistance(landmarks): number {
   const fst_hand = landmarks[0]
@@ -249,8 +268,8 @@ export function getZoomPointer(landmarks, canvas): Coordinate {
     const sec_idx = refactorCoordinate(sec_hand[8].x, sec_hand[8].y, sec_hand[8].z)
     const sec_thumb = refactorCoordinate(sec_hand[4].x, sec_hand[4].y, sec_hand[4].z)
 
-    let sumX = fst_idx[0] + fst_thumb[0] + sec_idx[0] + sec_thumb[0]
-    let sumY = fst_idx[1] + fst_thumb[1] + sec_idx[1] + sec_thumb[1]
+    const sumX = fst_idx[0] + fst_thumb[0] + sec_idx[0] + sec_thumb[0]
+    const sumY = fst_idx[1] + fst_thumb[1] + sec_idx[1] + sec_thumb[1]
 
     const centerX = sumX / 4
     const centerY = sumY / 4

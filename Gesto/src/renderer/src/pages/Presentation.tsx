@@ -89,6 +89,7 @@ function Presentation(): JSX.Element {
     const SUBSITUTION_COUNT = 5 // 제스처 교체 카운트 기준
     const countMap = new Map()
     countMap.set('HOLD', 0)
+    countMap.set('HOLD_POINTER', 0)
     countMap.set('POINTER', 0)
     countMap.set('ZOOM', 0)
     countMap.set('ZOOM_POINTER', 0)
@@ -145,7 +146,7 @@ function Presentation(): JSX.Element {
             slideRef[0].current.dispatchEvent(simulateMouseEvent('mousemove', pointer.x, pointer.y))
           }
         } else {
-          if (gestureNow == 'POINTER') {
+          if (gestureNow == 'POINTER' || gestureNow == 'HOLD_POINTER') {
             pointer = getPointer(landmarksArray, canvas)
             ctx.fillStyle = 'red'
           } else {
@@ -206,22 +207,7 @@ function Presentation(): JSX.Element {
       checkClick(gesture, last_data)
     }
 
-    //비디오에서 손 감지
-    const detectHands = (): void => {
-      if (videoRef.current && videoRef.current.readyState >= 2) {
-        const results = handLandmarker.detectForVideo(videoRef.current, performance.now())
-        if (results.landmarks.length > 0) {
-          predictGesture(results.landmarks) // 제스처 예측
-        } else {
-          const canvas = gestureRef.current
-          const ctx = canvas.getContext('2d')
-          ctx.clearRect(0, 0, canvas.width, canvas.height)
-        }
-      }
-      requestAnimationFrame(detectHands) // 프레임 변하면 재귀적으로 호출(반복)
-      // setTimeout(detectHands, 100)
-    }
-
+    //
     const checkClick = (gesture: string, last_data: string): void => {
       if (gesture === 'HOLD' && last_data !== 'HOLD') {
         holding = true
@@ -249,6 +235,22 @@ function Presentation(): JSX.Element {
           }
         }
       }
+    }
+
+    //비디오에서 손 감지
+    const detectHands = (): void => {
+      if (videoRef.current && videoRef.current.readyState >= 2) {
+        const results = handLandmarker.detectForVideo(videoRef.current, performance.now())
+        if (results.landmarks.length > 0) {
+          predictGesture(results.landmarks) // 제스처 예측
+        } else {
+          const canvas = gestureRef.current
+          const ctx = canvas.getContext('2d')
+          ctx.clearRect(0, 0, canvas.width, canvas.height)
+        }
+      }
+      requestAnimationFrame(detectHands) // 프레임 변하면 재귀적으로 호출(반복)
+      // setTimeout(detectHands, 100)
     }
 
     //웹캠 시작시킨 후 initial hand detection
