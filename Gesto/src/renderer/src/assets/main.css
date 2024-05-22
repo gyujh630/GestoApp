@@ -75,10 +75,44 @@ code {
   font-weight: 700;
 }
 
+/* 홈 */
+#home {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  padding-top: 180px;
+}
+
+#slogan-box {
+  display: flex;
+}
+
+#text-box {
+  font-size: 50px;
+  line-height: 1.4;
+}
+
+.slogan-blue {
+  font-weight: 700;
+  color: #3071F2;
+}
+
+.slogan {
+  font-weight: 700;
+}
+
+#home-logo {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  margin: auto;
+  margin-right: 30px;
+}
+
 .actions {
   display: flex;
-  padding-top: 32px;
-  margin: -6px;
+  padding-top: 60px;
+  margin: auto;
   flex-wrap: wrap;
   justify-content: flex-start;
 }
@@ -94,22 +128,54 @@ code {
   display: inline-block;
   border: 1px solid transparent;
   text-align: center;
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
-  border-radius: 20px;
-  padding: 0 20px;
+  border-radius: 30px;
+  padding: 22px 38px;
   line-height: 38px;
-  font-size: 14px;
+  font-size: 25px;
+  font-weight: bold;
   border-color: var(--ev-button-alt-border);
-  color: var(--ev-button-alt-text);
-  background-color: var(--ev-button-alt-bg);
+  color: white;
+  background-color: #3071F2;
+  /* transition: all 200ms ease; */
 }
 
 .action a:hover {
-  border-color: var(--ev-button-alt-hover-border);
-  color: var(--ev-button-alt-hover-text);
-  background-color: var(--ev-button-alt-hover-bg);
+  /* border-color: var(--ev-button-alt-hover-border); */
+  /* color: var(--ev-button-alt-hover-text); */
+  /* background-color: var(--ev-button-alt-hover-bg); */
+  background-color: #0B4FD5;
 }
+
+#guide-box {
+  margin: auto;
+  padding-top: 120px;
+}
+
+.guide-txt {
+  margin-right: 10px;
+  font-size: 18px;
+  color: #9C9C9C;
+}
+
+.guide-txt-blue {
+  color: #3071F2;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.link-guide {
+  text-decoration: none; 
+}
+
+.link-guide:hover {
+  text-decoration: underline;
+}
+
+
+
+/* */
 
 .versions {
   position: absolute;
@@ -152,35 +218,51 @@ code {
   width:100%;
   height:100%;
 }
+
 .body{
   width:100%;
   height:100%;
-  background-color: black;
-  padding: 100px 0 0 0 ;
+  background-color: white;
   overflow-x: hidden;
   overflow-y: hidden;
   display: flex;
   flex-direction: row;
 }
 
+/* 상단바 */
 .topBar {
   position: absolute;
   width: 100%;
-  height:100px;
-  padding: 20px 10px;
+  height: 55px;
   display: flex;
-  background-color: teal;
-  justify-content: space-between;
+  padding-right: 10px;
+  /* background-color: #D9D9D9; */
+  background-color: #F4F4F4;
+  /* border-bottom: 1px solid #D9D9D9; */
+  justify-content: right;
+  -webkit-app-region: drag;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
+
  .homeBtn {
-  width:60px;
-  height:60px;
-  border-radius: 20%;
-  border: 1px solid white;
+  width: 35px;
+  height: 35px;
+  margin-inline: 10px;
+  margin-block: auto;
+  border-radius: 25%;
+  border: 1px solid gray;
   display: flex;
   justify-content: center;
   align-items: center;
+  -webkit-app-region: no-drag;
+  text-decoration: none; 
 }
+
+.preview:hover {
+  border-color: #111;
+}
+
+/* 프레젠테이션 */
 .file {
   display: none;
 }
