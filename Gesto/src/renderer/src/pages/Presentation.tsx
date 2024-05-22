@@ -75,10 +75,18 @@ function Presentation(): JSX.Element {
   useEffect(() => {
     let handLandmarker
     let animationFrameId
+    // let holding = false
+    
+    /* 클릭 관련 변수 */
     let holding = false
-    const standard_speed = interpolate(window.innerHeight)
+    let is_clicked = false
+    let hold_start_time: Date | null = null
+    let hold_end_time: Date
+    let last_click_time: number = 2001
+
+    /* History, Count */
     const history: string[] = ['???']
-    const SUBSITUTION_COUNT = 7 // 제스처 교체 카운트 기준
+    const SUBSITUTION_COUNT = 5 // 제스처 교체 카운트 기준
     const countMap = new Map()
     countMap.set('HOLD', 0)
     countMap.set('POINTER', 0)
@@ -86,7 +94,9 @@ function Presentation(): JSX.Element {
     countMap.set('ZOOM_POINTER', 0)
     countMap.set('???', 0)
 
+    /* 위치, 속도 관련 변수 */
     let last_location: Coordinate = { x: 0, y: 0 }
+    const standard_speed = interpolate(window.innerHeight)
 
     window.addEventListener('resize', handleWindowSize)
 
@@ -111,20 +121,19 @@ function Presentation(): JSX.Element {
         console.error('Error initializing hand detection:', error)
       }
     }
+
     //받아온 랜드마크정보를 이용하여 손을 그려주는 부분. 이 부분을 커스텀하여 포인터,확대축소 커서등 구현 가능
     const drawLandmarks = (landmarksArray: [], gestureNow: string) => {
       const canvas = gestureRef.current
-      // console.log(canvas.offsetWidth)
       const ctx = canvas.getContext('2d')
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.lineWidth = 1
       if (landmarksArray.length != 0) {
-        let pointer = {}
+        let pointer: Coordinate
         if (gestureNow == 'HOLD') {
           pointer = getPointer(landmarksArray, canvas)
           ctx.fillStyle = 'green'
-          if (holding == false) {
-            holding = true
+          if (!holding) {
             slideRef[0].current.dispatchEvent(simulateMouseEvent('mousedown', pointer.x, pointer.y))
           } else {
             slideRef[0].current.dispatchEvent(simulateMouseEvent('mousemove', pointer.x, pointer.y))
@@ -137,7 +146,6 @@ function Presentation(): JSX.Element {
             pointer = getZoomPointer(landmarksArray, canvas)
             ctx.fillStyle = 'blue'
           }
-          holding = false
           slideRef[0].current.dispatchEvent(simulateMouseEvent('mouseup'))
         }
         // 빨간색 점 그리기
@@ -189,6 +197,7 @@ function Presentation(): JSX.Element {
       history.push(gesture)
       last_location = cur_location
       drawLandmarks(landmarks, gesture)
+      checkClick(gesture, last_data)
     }
 
     //비디오에서 손 감지
@@ -197,10 +206,8 @@ function Presentation(): JSX.Element {
         const results = handLandmarker.detectForVideo(videoRef.current, performance.now())
         if (results.landmarks.length > 0) {
           predictGesture(results.landmarks) // 제스처 예측
-        }
-        else {
+        } else {
           const canvas = gestureRef.current
-          // console.log(canvas.offsetWidth)
           const ctx = canvas.getContext('2d')
           ctx.clearRect(0, 0, canvas.width, canvas.height)
         }
@@ -208,6 +215,36 @@ function Presentation(): JSX.Element {
       requestAnimationFrame(detectHands) // 프레임 변하면 재귀적으로 호출(반복)
       // setTimeout(detectHands, 100)
     }
+
+    const checkClick = (gesture: string, last_data: string): void => {
+      if (gesture === 'HOLD' && last_data !== 'HOLD') {
+        holding = true
+        hold_start_time = new Date()
+      } else if (last_data === 'HOLD' && gesture !== 'HOLD') { // 홀드 풀릴 때
+        holding = false
+        const temp = hold_end_time
+        hold_end_time = new Date()
+
+        /* 클릭 체크 */
+        if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 300) {
+          console.log('click!') // 클릭 이벤트 실행
+          is_clicked = true
+        }
+        /* 더블클릭 체크 */
+        if (temp != undefined) {
+          if (
+            is_clicked &&
+            hold_end_time.getTime() - temp.getTime() < 600 &&
+            hold_end_time.getTime() - last_click_time > 2000
+          ) {
+            console.log('double click!') // 더블클릭 이벤트 실행
+            last_click_time = hold_end_time.getTime()
+            is_clicked = false
+          }
+        }
+      }
+    }
+
 
     //웹캠 시작시킨 후 initial hand detection
     const startWebcam = async () => {
