@@ -133,9 +133,15 @@ function Presentation(): JSX.Element {
         if (gestureNow == 'HOLD') {
           pointer = getPointer(landmarksArray, canvas)
           ctx.fillStyle = 'green'
-          if (!holding) {
-            slideRef[0].current.dispatchEvent(simulateMouseEvent('mousedown', pointer.x, pointer.y))
-          } else {
+          if (!holding) { //아직 홀드안했을때
+            setTimeout(
+              () =>
+                slideRef[0].current.dispatchEvent(
+                  simulateMouseEvent('mousedown', pointer.x, pointer.y)
+                ),
+              500
+            )
+          } else { //홀드중
             slideRef[0].current.dispatchEvent(simulateMouseEvent('mousemove', pointer.x, pointer.y))
           }
         } else {
@@ -220,13 +226,13 @@ function Presentation(): JSX.Element {
       if (gesture === 'HOLD' && last_data !== 'HOLD') {
         holding = true
         hold_start_time = new Date()
-      } else if (last_data === 'HOLD' && gesture !== 'HOLD') { // 홀드 풀릴 때
+      } else if (last_data === 'HOLD' && gesture !== 'HOLD') {
         holding = false
         const temp = hold_end_time
         hold_end_time = new Date()
 
         /* 클릭 체크 */
-        if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 300) {
+        if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 500) {
           console.log('click!') // 클릭 이벤트 실행
           is_clicked = true
         }
@@ -244,7 +250,6 @@ function Presentation(): JSX.Element {
         }
       }
     }
-
 
     //웹캠 시작시킨 후 initial hand detection
     const startWebcam = async () => {

@@ -139,17 +139,17 @@ function areTipsTouching(landmarks, fingerNum, distance): boolean {
 
 // 엄지 끝과 특정 손가락 끝이 서로 바라보는 방향인지 판단하는 함수
 export function areTipsFacing(landmarks, fingerNum): boolean {
-  let dip = refactorCoordinate(
+  const dip = refactorCoordinate(
     landmarks[4 * fingerNum + 3].x,
     landmarks[4 * fingerNum + 3].y,
     landmarks[4 * fingerNum + 3].z
   )
-  let tip = refactorCoordinate(
+  const tip = refactorCoordinate(
     landmarks[4 * fingerNum + 4].x,
     landmarks[4 * fingerNum + 4].y,
     landmarks[4 * fingerNum + 4].z
   )
-  let thumb_tip = refactorCoordinate(landmarks[4].x, landmarks[4].y, landmarks[4].z)
+  const thumb_tip = refactorCoordinate(landmarks[4].x, landmarks[4].y, landmarks[4].z)
 
   const v = getVector(dip[0], dip[1], dip[2], tip[0], tip[1], tip[2])
   const thumb_v = getVector(dip[0], dip[1], dip[2], thumb_tip[0], thumb_tip[1], thumb_tip[2])
