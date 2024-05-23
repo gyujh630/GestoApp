@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import iconImage from './assets/blue-logo.png'
+import iconImage from './assets/img/blue-logo.png'
 
 function App(): JSX.Element {
   const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')

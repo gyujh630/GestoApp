@@ -1,4 +1,5 @@
 @import './base.css';
+
 body {
   width:100vw;
   height: 100vh;
@@ -244,13 +245,13 @@ code {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
- .homeBtn {
-  width: 35px;
-  height: 35px;
-  margin-inline: 10px;
+ .topbarBtn {
+  width: 40px;
+  height: 40px;
+  margin-inline: 4px;
   margin-block: auto;
-  border-radius: 25%;
-  border: 1px solid gray;
+  /* border-radius: 25%;
+  border: 1px solid gray; */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -258,9 +259,18 @@ code {
   text-decoration: none; 
 }
 
+.topbar-icon {
+  width: 23px;
+}
+
+ .topbarBtn:hover .topbar-icon {
+    filter: brightness(0) saturate(100%) invert(34%) sepia(80%) saturate(2885%) hue-rotate(211deg) brightness(100%) contrast(90%);
+ }
+
 .preview:hover {
   border-color: #111;
 }
+
 
 /* 프레젠테이션 */
 .file {
