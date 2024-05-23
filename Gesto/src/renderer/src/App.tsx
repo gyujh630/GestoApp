@@ -6,16 +6,12 @@ function App(): JSX.Element {
 
   return (
     <>
-      <main className="page-box">
+      <div className="page-box">
         <div id="slogan-box">
           <img id="home-logo" src={iconImage} alt="" />
           <div id="text-box">
-            <div>
-              <span className="slogan-blue">Hand</span>
-              <span> </span>
-              <span className="slogan">Your</span>
-            </div>
-            <span className="slogan">Presentation.</span>
+              <span className="slogan-blue">Gesture</span>
+              <span className="slogan">to Your Presentation!</span>
           </div>
         </div>
         <div className="actions">
@@ -29,8 +25,7 @@ function App(): JSX.Element {
             <span className="guide-txt-blue">사용 가이드 보기</span>
           </Link>
         </div>
-        <div></div>
-      </main>
+      </div>
     </>
   )
 }
