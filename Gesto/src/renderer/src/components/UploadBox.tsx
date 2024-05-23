@@ -48,13 +48,14 @@ function UploadBox({ setFile }: UploadBoxProps): JSX.Element {
   }
 
   return (
-    <div
-      className={`preview${isActive ? ' active' : ''}`}
-      onDragEnter={() => handleDrag(true)}
-      onDragLeave={() => handleDrag(false)}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-    >
+    <>
+      <div
+        className={`preview${isActive ? ' active' : ''}`}
+        onDragEnter={() => handleDrag(true)}
+        onDragLeave={() => handleDrag(false)}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      ></div>
       {uploadedInfo ? (
         <FileInfo uploadedInfo={uploadedInfo} />
       ) : (
@@ -77,7 +78,7 @@ function UploadBox({ setFile }: UploadBoxProps): JSX.Element {
           </div>
         </>
       )}
-    </div>
+    </>
   )
 }
 
