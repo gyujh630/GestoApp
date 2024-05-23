@@ -222,6 +222,7 @@ code {
 .full{
   width:100%;
   height:100%;
+  position: relative;
 }
 
 .body{
@@ -458,7 +459,9 @@ code {
   object-fit: "cover";
   box-shadow: 0 7px 7px -1px rgba(0, 0, 0, 0.1), 0 -7px 7px -1px rgba(0, 0, 0, 0.1);
 }
-
+.scale_transition {
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
 @media (max-width: 720px) {
   .text {
     font-size: 20px;

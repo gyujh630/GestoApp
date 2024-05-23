@@ -251,11 +251,13 @@ export function getHoldPointer(landmarks, canvas): Coordinate {
 
 // 줌 거리 반환 (두 손 엄지 사이)
 export function getZoomDistance(landmarks): number {
+  if (landmarks[1] != undefined) {
   const fst_hand = landmarks[0]
   const sec_hand = landmarks[1]
   const fst_idx = refactorCoordinate(fst_hand[4].x, fst_hand[4].y, fst_hand[4].z)
   const sec_idx = refactorCoordinate(sec_hand[4].x, sec_hand[4].y, sec_hand[4].z)
   return getDistance(fst_idx[0], fst_idx[1], fst_idx[2], sec_idx[0], sec_idx[1], sec_idx[2])
+  }else return 0
 }
 
 // 캔버스에 그려야하는 포인터 좌표를 반환 (ZOOM, ZOOM_POINTER)

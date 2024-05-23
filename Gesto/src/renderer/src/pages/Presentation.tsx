@@ -8,13 +8,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { c } from "vite/dist/node/types.d-aGj9QkWt";
 
-const settings = {
-  dots: true,
-  infinite: true,
-  speed: 500,
-  slidesToShow: 1,
-  slidesToScroll: 1
-}
+
 
 export interface Coordinate {
   x: number
@@ -22,6 +16,7 @@ export interface Coordinate {
 }
 
 function Presentation(): JSX.Element {
+
   //선택된 pdf파일
   const selectedPdf = useStore((state) => state.selectedPdf)
   const selectedPdfList = useStore((state) => state.selectedPdfList)
@@ -29,6 +24,17 @@ function Presentation(): JSX.Element {
   const slideRef = Array.from({ length: selectedPdfList.length }).map(() => useRef())
   const gestureRef = useRef(null)
   const videoRef = useRef(null)
+  const carouselRef = useRef(null);
+  const zoomRef = useRef(null);
+
+  const settings = {
+    dots: false,
+    infinite: false,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    arrows:false,
+  }
 
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
@@ -57,7 +63,6 @@ function Presentation(): JSX.Element {
       if (pdf) {
         await pdf.getPage(pageNum).then(function (page) {
           const viewport = page.getViewport({ scale: 1 })
-          console.log('page의 viewport프로퍼티: ', viewport)
           const canvas = canvasRef.current
           canvas.height = viewport.height
           canvas.width = viewport.width
@@ -71,11 +76,33 @@ function Presentation(): JSX.Element {
     },
     [selectedPdf]
   )
+  const zoomWithDblClick = (e)=>{
+    const INITIAL_SCALE =1;
+    const MAXIMUM_SCALE =3;
+    const transformValue = e.target.style.transform;
+    // transform 값에서 scale 부분 추출
+    const scaleValue = transformValue.match(/scale\(([^)]+)\)/)?.[1];
+    const distTop = e.target.getBoundingClientRect().y
+
+    if(scaleValue==INITIAL_SCALE){
+      e.target.style.transformOrigin = `${e.clientX}px ${(e.clientY-distTop)}px`;
+      e.target.style.transform = `scale(${MAXIMUM_SCALE})`;
+    }
+    else{
+      e.target.style.transformOrigin = `${e.clientX}px ${(e.clientY-distTop)}px`;
+      e.target.style.transform = `scale(${INITIAL_SCALE})`;
+    }
+  }
 
   useEffect(() => {
     let handLandmarker
     let animationFrameId
-    // let holding = false
+
+    //DOM 변수
+    const carousel = carouselRef.current;
+    const carouselIndex = carousel.innerSlider.state.currentSlide;
+    const target = slideRef[carouselIndex].current;
+    const distTop = target.getBoundingClientRect().y;
     
     /* 클릭 관련 변수 */
     let holding = false
@@ -83,6 +110,29 @@ function Presentation(): JSX.Element {
     let hold_start_time: Date | null = null
     let hold_end_time: Date
     let last_click_time: number = 2001
+    /* ZOOM 관련 변수 */
+
+    //줌 찍혔을때 포인트
+    let initialPoint = {
+      x:0,
+      y:0
+    }
+    //초점 좌표
+    let prevInitialPoint = {
+      x:0,
+      y:0
+    }
+    //scale 값 (변화)
+    let zoom_rate = 100;
+    //줌 중인지 여부
+    let zoom_ing = false;
+    let zoom_start_dist = 0;
+    //확대축소 결정 기준 값
+    let prev_zoom_rate = 100;
+    
+    const MIN_ZOOM_RATE = 100;
+    const MAX_ZOOM_RATE = 1000;
+
 
     /* History, Count */
     const history: string[] = ['???']
@@ -100,6 +150,7 @@ function Presentation(): JSX.Element {
     const standard_speed = interpolate(window.innerHeight)
 
     window.addEventListener('resize', handleWindowSize)
+
 
     //handdetection 모델 호출한 후 detecthands()
     const initializeHandDetection = async () => {
@@ -125,7 +176,14 @@ function Presentation(): JSX.Element {
 
     //받아온 랜드마크정보를 이용하여 손을 그려주는 부분. 이 부분을 커스텀하여 포인터,확대축소 커서등 구현 가능
     const drawLandmarks = (landmarksArray: [], gestureNow: string) => {
-      const canvas = gestureRef.current
+      const slider = carouselRef.current;
+      const index = slider.innerSlider.state.currentSlide;
+      const targetSlide = slideRef[index].current;
+        const canvas = gestureRef.current;
+        if (canvas) {
+          canvas.width = canvas.offsetWidth
+          canvas.height = canvas.offsetHeight
+        }
       const ctx = canvas.getContext('2d')
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.lineWidth = 1
@@ -137,28 +195,88 @@ function Presentation(): JSX.Element {
           if (!holding) { //아직 홀드안했을때
             setTimeout(
               () =>
-                slideRef[0].current.dispatchEvent(
+                targetSlide.dispatchEvent(
                   simulateMouseEvent('mousedown', pointer.x, pointer.y)
                 ),
               500
             )
           } else { //홀드중
-            slideRef[0].current.dispatchEvent(simulateMouseEvent('mousemove', pointer.x, pointer.y))
+            targetSlide.dispatchEvent(simulateMouseEvent('mousemove', pointer.x, pointer.y))
           }
-        } else {
-          if (gestureNow == 'POINTER' || gestureNow == 'HOLD_POINTER') {
+        ctx.beginPath()
+        ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
+        ctx.fill()
+        } 
+        else if (gestureNow == 'POINTER' || gestureNow == 'HOLD_POINTER') {
             pointer = getPointer(landmarksArray, canvas)
             ctx.fillStyle = 'red'
-          } else {
+            ctx.beginPath()
+            ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
+            ctx.fill()
+          } 
+        else if(gestureNow =="ZOOM_POINTER"){
             pointer = getZoomPointer(landmarksArray, canvas)
             ctx.fillStyle = 'blue'
+            ctx.beginPath()
+            ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
+            ctx.fill()
           }
-          slideRef[0].current.dispatchEvent(simulateMouseEvent('mouseup'))
-        }
-        // 빨간색 점 그리기
-        ctx.beginPath()
-        ctx.arc(pointer.x, pointer.y, 1, 0, 2 * Math.PI)
-        ctx.fill()
+        else if(gestureNow =='ZOOM'){
+            let x,y;
+            let prev_rate ;
+            if(zoom_ing==false){
+              zoom_ing = true;
+              zoom_start_dist = getZoomDistance(landmarksArray)
+              let newPoint = getZoomPointer(landmarksArray, canvas);
+              initialPoint = {
+                x:newPoint.x,
+                y:newPoint.y
+              }
+              prev_rate = zoom_rate
+            }
+          
+            if (zoom_ing) { // 줌 동작 진행 중
+              let delta = 0.15; // 변화율
+              const zoom_cur_dist = getZoomDistance(landmarksArray);
+              //0~300정도의 사이값 나오는 배율 값
+              let new_zoom_rate = parseInt((zoom_cur_dist / zoom_start_dist*100).toFixed(0));
+              zoom_rate = zoom_rate + (new_zoom_rate - prev_zoom_rate) * delta;
+              zoom_rate = Math.max(MIN_ZOOM_RATE, Math.min(zoom_rate, MAX_ZOOM_RATE));
+              ctx.fillStyle = "blue";
+              
+           
+            }
+            pointer = initialPoint
+            ctx.fillStyle = 'blue'
+            ctx.beginPath()
+            ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
+            ctx.fill();
+
+            //초점 변화 계산식
+            x = prevInitialPoint.x - initialPoint.x * zoom_rate/prev_rate;
+            y = prevInitialPoint.y - initialPoint.y * zoom_rate/prev_rate;
+
+
+
+
+            //슬라이드 영역 외의 범위는 확대 축소 안되게 범위 조절 필요
+            // initialpPoint slide top~ slide top+height안에 있을때만
+            if(initialPoint.y>distTop && initialPoint.y<targetSlide.offsetHeight+distTop){
+              targetSlide.style.transformOrigin = `${initialPoint.x}px ${(initialPoint.y-distTop)}px`;
+              targetSlide.style.transform = `scale(${zoom_rate/100})`;
+            }
+
+
+          }
+          // 제스처 유지 관련 변수 초기화
+          if(gestureNow !='HOLD'){
+            targetSlide.dispatchEvent(simulateMouseEvent('mouseup'))
+          }
+          if(gestureNow !='ZOOM'){
+            zoom_ing=false
+          }
+        
+
       }
     }
 
@@ -204,11 +322,14 @@ function Presentation(): JSX.Element {
       history.push(gesture)
       last_location = cur_location
       drawLandmarks(landmarks, gesture)
-      checkClick(gesture, last_data)
+      checkClick(gesture, last_data,landmarks)
     }
 
     //
-    const checkClick = (gesture: string, last_data: string): void => {
+    const checkClick = (gesture: string, last_data: string,landmarks): void => {
+      const canvas = gestureRef.current
+      const pointer = getPointer(landmarks,canvas)
+      const element = document.elementFromPoint(pointer.x,pointer.y);
       if (gesture === 'HOLD' && last_data !== 'HOLD') {
         holding = true
         hold_start_time = new Date()
@@ -219,7 +340,12 @@ function Presentation(): JSX.Element {
 
         /* 클릭 체크 */
         if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 500) {
-          console.log('click!') // 클릭 이벤트 실행
+          element.dispatchEvent(new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            clientX: pointer.x,
+            clientY: pointer.y
+          }));
           is_clicked = true
         }
         /* 더블클릭 체크 */
@@ -229,7 +355,12 @@ function Presentation(): JSX.Element {
             hold_end_time.getTime() - temp.getTime() < 600 &&
             hold_end_time.getTime() - last_click_time > 2000
           ) {
-            console.log('double click!') // 더블클릭 이벤트 실행
+            element.dispatchEvent(new MouseEvent('dblclick', {
+              bubbles: true,
+              cancelable: true,
+              clientX: pointer.x,
+              clientY: pointer.y
+            }));
             last_click_time = hold_end_time.getTime()
             is_clicked = false
           }
@@ -245,8 +376,15 @@ function Presentation(): JSX.Element {
           predictGesture(results.landmarks) // 제스처 예측
         } else {
           const canvas = gestureRef.current
+          const slider = carouselRef.current;
+          const index = slider.innerSlider.state.currentSlide
+          const targetSlide = slideRef[index].current;
+
           const ctx = canvas.getContext('2d')
           ctx.clearRect(0, 0, canvas.width, canvas.height)
+          //손 사라질시 제스처 유지 관련 변수 초기화
+          targetSlide.dispatchEvent(simulateMouseEvent('mouseup'))
+          zoom_ing=false
         }
       }
       requestAnimationFrame(detectHands) // 프레임 변하면 재귀적으로 호출(반복)
@@ -285,12 +423,17 @@ function Presentation(): JSX.Element {
     <>
       <video ref={videoRef} autoPlay playsInline style={{ display: 'none' }}></video>
       <div style={{ width: '100%', height: '100%', backgroundColor: 'blue' }}>
-        <Slider {...settings}>
+      <Slider ref={carouselRef} {...settings}>
           {selectedPdfList &&
             selectedPdfList.map((url, index) => (
-              <div key={`Page ${index + 1}`} style={{ width: 800, borderColor: 'red' }}>
+              <div key={`Page ${index + 1}`} >
+                <div style={{width:'100%',height:'100%',backgroundColor:'teal',overflow:'hidden'}}>
                 <img
                   src={url}
+                  className="scale_transition"
+                  onDoubleClick={(e)=>{
+                    zoomWithDblClick(e)
+                  }}
                   ref={slideRef[index]}
                   alt={`Page ${index + 1}`}
                   style={{
@@ -299,6 +442,7 @@ function Presentation(): JSX.Element {
                     objectFit: 'cover'
                   }}
                 />
+                </div>
               </div>
             ))}
         </Slider>
