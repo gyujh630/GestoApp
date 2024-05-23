@@ -38,7 +38,7 @@ code {
 .creator {
   font-size: 14px;
   line-height: 16px;
-  color: var(--ev-c-text-2);
+  color: black;
   font-weight: 600;
   margin-bottom: 10px;
 }
@@ -77,15 +77,18 @@ code {
 }
 
 /* 홈 */
-#home {
+.page-box {
+  height: 100%;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   margin: auto;
-  padding-top: 180px;
+  padding-top: 55px;
 }
 
 #slogan-box {
   display: flex;
+  padding-top: 160px;
 }
 
 #text-box {
@@ -158,12 +161,13 @@ code {
   margin-right: 10px;
   font-size: 18px;
   color: #9C9C9C;
+  font-weight: 400;
 }
 
 .guide-txt-blue {
   color: #3071F2;
   font-size: 18px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .link-guide {
@@ -238,14 +242,15 @@ code {
   display: flex;
   padding-right: 10px;
   /* background-color: #D9D9D9; */
-  background-color: #F4F4F4;
+  background-color: #f9f9f9;
   /* border-bottom: 1px solid #D9D9D9; */
   justify-content: right;
   -webkit-app-region: drag;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #ededed;
+  /* box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); */
 }
 
- .topbarBtn {
+.topbarBtn {
   width: 40px;
   height: 40px;
   margin-inline: 4px;
@@ -263,21 +268,27 @@ code {
   width: 23px;
 }
 
- .topbarBtn:hover .topbar-icon {
-    filter: brightness(0) saturate(100%) invert(34%) sepia(80%) saturate(2885%) hue-rotate(211deg) brightness(100%) contrast(90%);
- }
-
-.preview:hover {
-  border-color: #111;
+.topbarBtn:hover .topbar-icon {
+  filter: brightness(0) saturate(100%) invert(34%) sepia(80%) saturate(2885%) hue-rotate(211deg) brightness(100%) contrast(90%);
 }
 
 
-/* 프레젠테이션 */
-.file {
+/* 파일 선택 화면 */
+
+.pdf-page-box {
+  height: 100%;
+  display: flex;
+  margin: auto;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: 55px;
+}
+
+.file-box {
   display: none;
 }
 
-.file::file-selector-button {
+.file-box::file-selector-button {
   font-size: 14px;
   background: #fff;
   border: 1px solid #111;
@@ -286,44 +297,61 @@ code {
   cursor: pointer;
 }
 
-.preview {
-  width: 300px;
-  height: 200px;
-  margin: auto;
-  background-color: #fff;
-  border-radius: 5px;
-  border: 3px dashed #eee;
-  padding: 70px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+.file-select-btn {
+  width: 180px;
+  height: 50px;
+  border: none;
+  font-size: 17px;
+  font-weight: 700;
+  background-color: #3071F2;
+  color: white;
+  border-radius: 30px;
   cursor: pointer;
-  color:black;
+  margin: auto;
+  margin-bottom: 35px;
 }
 
-.preview:hover {
-  border-color: #111;
+.file-select-btn:hover {
+  background-color: #0B4FD5;
 }
+
+.main-box {
+  width: 100%;
+  height: 100%;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.preview {
+  width: 600px;
+  height: 300px;
+  margin: auto;
+  background-color: #fff;
+  border-radius: 35px;
+  border: 3px dashed #A9AAAB;
+  align-items: center;
+  color: #50555F;
+}
+
 .preview.active {
   background-color: #efeef3;
   border-color: #111;
+}
+
+.file-msg-box {
+  margin: auto;
+  text-align: center;
+  padding-top: 50px;
 }
 
 .preview_msg {
-  font-weight: 500;
-  font-size: 18px;
-  margin: 20px 0 10px;
+  font-weight: 700;
+  font-size: 25px;
+  margin: 4px 0;
 }
 
-.preview_desc {
-  margin: 0;
-  font-size: 14px;
-}
-.preview.active {
-  background-color: #efeef3;
-  border-color: #111;
-}
 .preview_info {
   width: 100%;
   list-style: none;
@@ -343,6 +371,8 @@ code {
 .preview_info .info_value {
   font-size: 14px;
 }
+
+/* 프레젠테이션 상세 페이지 */
 
 .presentation_left {
   width:24%;

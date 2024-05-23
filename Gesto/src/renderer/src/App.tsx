@@ -6,7 +6,7 @@ function App(): JSX.Element {
 
   return (
     <>
-      <main id="home">
+      <main className="page-box">
         <div id="slogan-box">
           <img id="home-logo" src={iconImage} alt="" />
           <div id="text-box">
