@@ -99,11 +99,11 @@ function Presentation(): JSX.Element {
     let animationFrameId
 
     //DOM 변수
-    const carousel = carouselRef.current;
-    const carouselIndex = carousel.innerSlider.state.currentSlide;
-    const target = slideRef[carouselIndex].current;
-    const distTop = target.getBoundingClientRect().y;
-    
+    const carousel = carouselRef.current
+    const carouselIndex = carousel.innerSlider.state.currentSlide
+    const target = slideRef[carouselIndex].current
+    const distTop = target.getBoundingClientRect().y
+
     /* 클릭 관련 변수 */
     let holding = false
     let is_clicked = false
@@ -113,31 +113,31 @@ function Presentation(): JSX.Element {
     /* ZOOM 관련 변수 */
 
     //줌 찍혔을때 포인트
-    let initialPoint = {
-      x:0,
-      y:0
+    let initialPoint: Coordinate = {
+      x: 0,
+      y: 0
     }
     //초점 좌표
-    let prevInitialPoint = {
-      x:0,
-      y:0
+    const prevInitialPoint: Coordinate = {
+      x: 0,
+      y: 0
     }
     //scale 값 (변화)
-    let zoom_rate = 100;
+    let zoom_rate = 100
     //줌 중인지 여부
-    let zoom_ing = false;
-    let zoom_start_dist = 0;
+    let zoom_ing = false
+    let zoom_start_dist = 0
     //확대축소 결정 기준 값
-    let prev_zoom_rate = 100;
-    
-    const MIN_ZOOM_RATE = 100;
-    const MAX_ZOOM_RATE = 1000;
+    const prev_zoom_rate: number = 100
 
+    const MIN_ZOOM_RATE = 100
+    const MAX_ZOOM_RATE = 1000
 
     /* History, Count */
     const history: string[] = ['???']
     const SUBSITUTION_COUNT = 5 // 제스처 교체 카운트 기준
     const countMap = new Map()
+    countMap.set('TAB_CONTROL', 0)
     countMap.set('HOLD', 0)
     countMap.set('HOLD_POINTER', 0)
     countMap.set('POINTER', 0)
@@ -149,8 +149,13 @@ function Presentation(): JSX.Element {
     let last_location: Coordinate = { x: 0, y: 0 }
     const standard_speed = interpolate(window.innerHeight)
 
-    window.addEventListener('resize', handleWindowSize)
+    /* 탭 컨트롤 관련 변수 */
+    let tab_start_y: number
+    let tab_ing: boolean = false
+    let tab_state: boolean = false
+    let tab_gauge: number = 0
 
+    window.addEventListener('resize', handleWindowSize)
 
     //handdetection 모델 호출한 후 detecthands()
     const initializeHandDetection = async () => {
@@ -176,14 +181,14 @@ function Presentation(): JSX.Element {
 
     //받아온 랜드마크정보를 이용하여 손을 그려주는 부분. 이 부분을 커스텀하여 포인터,확대축소 커서등 구현 가능
     const drawLandmarks = (landmarksArray: [], gestureNow: string) => {
-      const slider = carouselRef.current;
-      const index = slider.innerSlider.state.currentSlide;
-      const targetSlide = slideRef[index].current;
-        const canvas = gestureRef.current;
-        if (canvas) {
-          canvas.width = canvas.offsetWidth
-          canvas.height = canvas.offsetHeight
-        }
+      const slider = carouselRef.current
+      const index = slider.innerSlider.state.currentSlide
+      const targetSlide = slideRef[index].current
+      const canvas = gestureRef.current
+      if (canvas) {
+        canvas.width = canvas.offsetWidth
+        canvas.height = canvas.offsetHeight
+      }
       const ctx = canvas.getContext('2d')
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.lineWidth = 1
@@ -192,91 +197,80 @@ function Presentation(): JSX.Element {
         if (gestureNow == 'HOLD') {
           pointer = getPointer(landmarksArray, canvas)
           ctx.fillStyle = 'green'
-          if (!holding) { //아직 홀드안했을때
+          if (!holding) {
+            //아직 홀드안했을때
             setTimeout(
               () =>
-                targetSlide.dispatchEvent(
-                  simulateMouseEvent('mousedown', pointer.x, pointer.y)
-                ),
+                targetSlide.dispatchEvent(simulateMouseEvent('mousedown', pointer.x, pointer.y)),
               300
             )
-          } else { //홀드중
+          } else {
+            //홀드중
             targetSlide.dispatchEvent(simulateMouseEvent('mousemove', pointer.x, pointer.y))
           }
-        ctx.beginPath()
-        ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
-        ctx.fill()
-        } 
-        else if (gestureNow == 'POINTER' || gestureNow == 'HOLD_POINTER') {
-            pointer = getPointer(landmarksArray, canvas)
-            ctx.fillStyle = 'red'
-            ctx.beginPath()
-            ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
-            ctx.fill()
-          } 
-        else if(gestureNow =="ZOOM_POINTER"){
-            pointer = getZoomPointer(landmarksArray, canvas)
+          ctx.beginPath()
+          ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
+          ctx.fill()
+        } else if (gestureNow == 'POINTER' || gestureNow == 'TAB_CONTROL') {
+          pointer = getPointer(landmarksArray, canvas)
+          ctx.fillStyle = 'red'
+          ctx.beginPath()
+          ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
+          ctx.fill()
+        } else if (gestureNow == 'ZOOM_POINTER') {
+          pointer = getZoomPointer(landmarksArray, canvas)
+          ctx.fillStyle = 'blue'
+          ctx.beginPath()
+          ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
+          ctx.fill()
+        } else if (gestureNow == 'ZOOM') {
+          let x, y
+          let prev_rate
+          if (zoom_ing == false) {
+            zoom_ing = true
+            zoom_start_dist = getZoomDistance(landmarksArray)
+            let newPoint = getZoomPointer(landmarksArray, canvas)
+            initialPoint = {
+              x: newPoint.x,
+              y: newPoint.y
+            }
+            prev_rate = zoom_rate
+          }
+
+          if (zoom_ing) {
+            // 줌 동작 진행 중
+            let delta = 0.15 // 변화율
+            const zoom_cur_dist = getZoomDistance(landmarksArray)
+            //0~300정도의 사이값 나오는 배율 값
+            let new_zoom_rate = parseInt(((zoom_cur_dist / zoom_start_dist) * 100).toFixed(0))
+            zoom_rate = zoom_rate + (new_zoom_rate - prev_zoom_rate) * delta
+            zoom_rate = Math.max(MIN_ZOOM_RATE, Math.min(zoom_rate, MAX_ZOOM_RATE))
             ctx.fillStyle = 'blue'
-            ctx.beginPath()
-            ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
-            ctx.fill()
           }
-        else if(gestureNow =='ZOOM'){
-            let x,y;
-            let prev_rate ;
-            if(zoom_ing==false){
-              zoom_ing = true;
-              zoom_start_dist = getZoomDistance(landmarksArray)
-              let newPoint = getZoomPointer(landmarksArray, canvas);
-              initialPoint = {
-                x:newPoint.x,
-                y:newPoint.y
-              }
-              prev_rate = zoom_rate
-            }
-          
-            if (zoom_ing) { // 줌 동작 진행 중
-              let delta = 0.15; // 변화율
-              const zoom_cur_dist = getZoomDistance(landmarksArray);
-              //0~300정도의 사이값 나오는 배율 값
-              let new_zoom_rate = parseInt((zoom_cur_dist / zoom_start_dist*100).toFixed(0));
-              zoom_rate = zoom_rate + (new_zoom_rate - prev_zoom_rate) * delta;
-              zoom_rate = Math.max(MIN_ZOOM_RATE, Math.min(zoom_rate, MAX_ZOOM_RATE));
-              ctx.fillStyle = "blue";
-              
-           
-            }
-            pointer = initialPoint
-            ctx.fillStyle = 'blue'
-            ctx.beginPath()
-            ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
-            ctx.fill();
+          pointer = initialPoint
+          ctx.fillStyle = 'blue'
+          ctx.beginPath()
+          ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
+          ctx.fill()
 
-            //초점 변화 계산식
-            x = prevInitialPoint.x - initialPoint.x * zoom_rate/prev_rate;
-            y = prevInitialPoint.y - initialPoint.y * zoom_rate/prev_rate;
+          //초점 변화 계산식
+          x = prevInitialPoint.x - (initialPoint.x * zoom_rate) / prev_rate
+          y = prevInitialPoint.y - (initialPoint.y * zoom_rate) / prev_rate
 
-
-
-
-            //슬라이드 영역 외의 범위는 확대 축소 안되게 범위 조절 필요
-            // initialpPoint slide top~ slide top+height안에 있을때만
-            if(initialPoint.y>distTop && initialPoint.y<targetSlide.offsetHeight+distTop){
-              targetSlide.style.transformOrigin = `${initialPoint.x}px ${(initialPoint.y-distTop)}px`;
-              targetSlide.style.transform = `scale(${zoom_rate/100})`;
-            }
-
-
+          //슬라이드 영역 외의 범위는 확대 축소 안되게 범위 조절 필요
+          // initialpPoint slide top~ slide top+height안에 있을때만
+          if (initialPoint.y > distTop && initialPoint.y < targetSlide.offsetHeight + distTop) {
+            targetSlide.style.transformOrigin = `${initialPoint.x}px ${initialPoint.y - distTop}px`
+            targetSlide.style.transform = `scale(${zoom_rate / 100})`
           }
-          // 제스처 유지 관련 변수 초기화
-          if(gestureNow !='HOLD'){
-            targetSlide.dispatchEvent(simulateMouseEvent('mouseup'))
-          }
-          if(gestureNow !='ZOOM'){
-            zoom_ing=false
-          }
-        
-
+        }
+        // 제스처 유지 관련 변수 초기화
+        if (gestureNow != 'HOLD') {
+          targetSlide.dispatchEvent(simulateMouseEvent('mouseup'))
+        }
+        if (gestureNow != 'ZOOM') {
+          zoom_ing = false
+        }
       }
     }
 
@@ -322,14 +316,14 @@ function Presentation(): JSX.Element {
       history.push(gesture)
       last_location = cur_location
       drawLandmarks(landmarks, gesture)
-      checkClick(gesture, last_data,landmarks)
+      checkClick(gesture, last_data, landmarks)
+      checkTabControl(gesture, last_data, landmarks)
     }
 
-    //
-    const checkClick = (gesture: string, last_data: string,landmarks): void => {
+    const checkClick = (gesture: string, last_data: string, landmarks): void => {
       const canvas = gestureRef.current
-      const pointer = getPointer(landmarks,canvas)
-      const element = document.elementFromPoint(pointer.x,pointer.y);
+      const pointer = getPointer(landmarks, canvas)
+      const element = document.elementFromPoint(pointer.x, pointer.y)
       if (gesture === 'HOLD' && last_data !== 'HOLD') {
         holding = true
         hold_start_time = new Date()
@@ -340,12 +334,14 @@ function Presentation(): JSX.Element {
 
         /* 클릭 체크 */
         if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 300) {
-          element.dispatchEvent(new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true,
-            clientX: pointer.x,
-            clientY: pointer.y
-          }));
+          element.dispatchEvent(
+            new MouseEvent('click', {
+              bubbles: true,
+              cancelable: true,
+              clientX: pointer.x,
+              clientY: pointer.y
+            })
+          )
           is_clicked = true
         }
         /* 더블클릭 체크 */
@@ -355,15 +351,48 @@ function Presentation(): JSX.Element {
             hold_end_time.getTime() - temp.getTime() < 700 &&
             hold_end_time.getTime() - last_click_time > 500
           ) {
-            element.dispatchEvent(new MouseEvent('dblclick', {
-              bubbles: true,
-              cancelable: true,
-              clientX: pointer.x,
-              clientY: pointer.y
-            }));
+            element.dispatchEvent(
+              new MouseEvent('dblclick', {
+                bubbles: true,
+                cancelable: true,
+                clientX: pointer.x,
+                clientY: pointer.y
+              })
+            )
             last_click_time = hold_end_time.getTime()
             is_clicked = false
           }
+        }
+      }
+    }
+
+    const checkTabControl = (gesture, last_data, landmarks) => {
+      const canvas = gestureRef.current 
+      if (gesture === 'TAB_CONTROL' && last_data !== 'TAB_CONTROL') {
+        tab_ing = true
+        tab_start_y = getPointer(landmarks, canvas).y
+      } else if (last_data === 'TAB_CONTROL' && gesture !== 'TAB_CONTROL') {
+        tab_ing = false
+      }
+
+      if (tab_ing) {
+        const cur_y = getPointer(landmarks, canvas).y
+        const y_range = canvas.offsetHeight * 0.28 // 기준 범위
+        const gauge_max = 100
+
+        // 절댓값을 사용하여 게이지 값 계산
+        const distance = Math.abs(tab_start_y - cur_y)
+        const tab_gauge = Math.min((distance / y_range) * gauge_max, gauge_max).toFixed(0)
+
+        console.log(tab_gauge)
+
+        if (cur_y > tab_start_y + y_range && !tab_state) {
+          console.log('상단바 내리기')
+          tab_state = true
+        }
+        if (cur_y < tab_start_y - y_range && tab_state) {
+          console.log('상단바 올리기')
+          tab_state = false
         }
       }
     }
@@ -376,15 +405,15 @@ function Presentation(): JSX.Element {
           predictGesture(results.landmarks) // 제스처 예측
         } else {
           const canvas = gestureRef.current
-          const slider = carouselRef.current;
+          const slider = carouselRef.current
           const index = slider.innerSlider.state.currentSlide
-          const targetSlide = slideRef[index].current;
+          const targetSlide = slideRef[index].current
 
           const ctx = canvas.getContext('2d')
           ctx.clearRect(0, 0, canvas.width, canvas.height)
           //손 사라질시 제스처 유지 관련 변수 초기화
           targetSlide.dispatchEvent(simulateMouseEvent('mouseup'))
-          zoom_ing=false
+          zoom_ing = false
         }
       }
       requestAnimationFrame(detectHands) // 프레임 변하면 재귀적으로 호출(반복)

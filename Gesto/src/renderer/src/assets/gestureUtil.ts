@@ -174,16 +174,24 @@ export function getGesture(landmarks): string {
   }
 
   if (second_hand == undefined) {
+    /* TAB CONTROL */
+    if (
+      isFingerStraight(first_hand, 1) &&
+      isFingerStraight(first_hand, 2) &&
+      (isFingerFold(first_hand, 3, 40, 10, 0) || isFingerFold(first_hand, 4, 40, 10, 0))
+    ) {
+      return 'TAB_CONTROL'
+    }
     /* HOLD */
     if (
-      isFingerFold(first_hand, 3, 20, 45, 10) &&
-      isFingerFold(first_hand, 4, 20, 45, 10) &&
-      isFingerFold(first_hand, 2, 20, 45, 10) &&
-      areTipsFacing(first_hand, 1)
+      isFingerFold(first_hand, 3, 20, 45, 0) ||
+      (isFingerFold(first_hand, 4, 20, 45, 0) &&
+        isFingerFold(first_hand, 2, 20, 45, 0) &&
+        areTipsFacing(first_hand, 1))
     ) {
-      if (areTipsTouching(first_hand, 1, 5)) {
+      if (areTipsTouching(first_hand, 1, 4)) {
         return 'HOLD'
-      } else if (areTipsTouching(first_hand, 1, 10)) {
+      } else if (areTipsTouching(first_hand, 1, 12)) {
         return 'POINTER'
       }
     }
@@ -191,6 +199,7 @@ export function getGesture(landmarks): string {
     /* POINTER */
     if (
       isFingerStraight(first_hand, 1) &&
+      isFingerFold(first_hand, 2, 10, 40, 10) &&
       (isFingerFold(first_hand, 3, 10, 80, 10) ||
         isFingerFold(first_hand, 3, 80, 10, 10) ||
         isFingerFold(first_hand, 4, 10, 80, 10) ||
