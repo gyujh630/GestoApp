@@ -7,6 +7,8 @@ function PreparePresentation(): JSX.Element {
   const selectedPdf = useStore((state) => state.selectedPdf)
   const selectedPdfList = useStore((state) => state.selectedPdfList)
   const setSelectedPdfList = useStore((state) => state.setSelectedPdfList)
+  // const topBarState = useStore((state) => state.topBarState)
+  const setTopBarState = useStore((state) => state.setTopBarState)
 
   const [selectedPage, setSelectedPage] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -33,6 +35,7 @@ function PreparePresentation(): JSX.Element {
         }
         setSelectedPdfList(imagesList)
         setLoading(false) // 로딩 완료
+        setTopBarState(true)
       }
     },
     [selectedPdf, setSelectedPdfList]
@@ -51,21 +54,19 @@ function PreparePresentation(): JSX.Element {
     )
   }
 
-  return (
-    loading?
+  return loading ? (
     <div className="load-box">
-        <SyncLoader color={'#3071F2'} loading={loading} size={20} />
-        <span className="load-txt">파일을 변환하고 있어요!</span>
-      </div>
-    
-    :
+      <SyncLoader color={'#3071F2'} loading={loading} size={20} />
+      <span className="load-txt">파일을 변환하고 있어요!</span>
+    </div>
+  ) : (
     <>
-     <div className="presentation_left">
+      <div className="presentation_left">
         {selectedPdfList &&
           selectedPdfList.map((url, index) => (
             <div key={`Page ${index + 1}`}>
               <div onClick={() => setSelectedPage(index)}>
-                <div className={index==selectedPage?"left-img-box active":"left-img-box"}>
+                <div className={index == selectedPage ? 'left-img-box active' : 'left-img-box'}>
                   <img className="img-pages" src={url} alt={`Page ${index + 1}`} />
                 </div>
               </div>
@@ -74,7 +75,7 @@ function PreparePresentation(): JSX.Element {
           ))}
       </div>
       <div className="presentation_right">
-        <div onClick={() => navigate('/Presentation')}>
+        <div>
           <img
             id="img-selected"
             src={selectedPdfList[selectedPage]}
@@ -82,9 +83,7 @@ function PreparePresentation(): JSX.Element {
           />
         </div>
       </div>
-      </>
-
-    
+    </>
   )
 }
 

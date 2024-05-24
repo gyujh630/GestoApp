@@ -1,15 +1,19 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ipcRenderer,screen } from "electron";
-import useStore from "@renderer/store/store";
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ipcRenderer, screen } from 'electron'
+import useStore from '@renderer/store/store'
 import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision'
-import { getGesture, getPointer, getZoomPointer, getZoomDistance, interpolate } from '../assets/gestureUtil' 
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import { c } from "vite/dist/node/types.d-aGj9QkWt";
-import { useNavigate } from "react-router-dom";
-
-
+import {
+  getGesture,
+  getPointer,
+  getZoomPointer,
+  getZoomDistance,
+  interpolate
+} from '../assets/gestureUtil'
+import Slider from 'react-slick'
+import 'slick-carousel/slick/slick.css'
+import 'slick-carousel/slick/slick-theme.css'
+import { c } from 'vite/dist/node/types.d-aGj9QkWt'
+import { useNavigate } from 'react-router-dom'
 
 export interface Coordinate {
   x: number
@@ -17,17 +21,18 @@ export interface Coordinate {
 }
 
 function Presentation(): JSX.Element {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   //선택된 pdf파일
   const selectedPdf = useStore((state) => state.selectedPdf)
   const selectedPdfList = useStore((state) => state.selectedPdfList)
+  const setTopBarState = useStore((state) => state.setTopBarState)
 
   const slideRef = Array.from({ length: selectedPdfList.length }).map(() => useRef())
   const gestureRef = useRef(null)
   const videoRef = useRef(null)
-  const carouselRef = useRef(null);
-  const zoomRef = useRef(null);
+  const carouselRef = useRef(null)
+  const zoomRef = useRef(null)
 
   const settings = {
     dots: false,
@@ -35,7 +40,7 @@ function Presentation(): JSX.Element {
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
-    arrows:false,
+    arrows: false
   }
 
   const [windowSize, setWindowSize] = useState({
@@ -60,9 +65,10 @@ function Presentation(): JSX.Element {
   }
   const handleEsc = (event) => {
     if (event.key === 'Escape') {
-       navigate('/PreparePresentation')}
-  };
-  
+      navigate('/PreparePresentation')
+      setTopBarState(true)
+    }
+  }
 
   //pdf그리기
   const renderPage = useCallback(
@@ -83,29 +89,27 @@ function Presentation(): JSX.Element {
     },
     [selectedPdf]
   )
-  const zoomWithDblClick = (e)=>{
-    const INITIAL_SCALE =1;
-    const MAXIMUM_SCALE =3;
-    const transformValue = e.target.style.transform;
+  const zoomWithDblClick = (e) => {
+    const INITIAL_SCALE = 1
+    const MAXIMUM_SCALE = 3
+    const transformValue = e.target.style.transform
     // transform 값에서 scale 부분 추출
-    const scaleValue = transformValue.match(/scale\(([^)]+)\)/)?.[1];
+    const scaleValue = transformValue.match(/scale\(([^)]+)\)/)?.[1]
     const distTop = e.target.getBoundingClientRect().y
 
-    if(scaleValue==INITIAL_SCALE){
-      e.target.style.transformOrigin = `${e.clientX}px ${(e.clientY-distTop)}px`;
-      e.target.style.transform = `scale(${MAXIMUM_SCALE})`;
-    }
-    else{
-      e.target.style.transformOrigin = `${e.clientX}px ${(e.clientY-distTop)}px`;
-      e.target.style.transform = `scale(${INITIAL_SCALE})`;
+    if (scaleValue == INITIAL_SCALE) {
+      e.target.style.transformOrigin = `${e.clientX}px ${e.clientY - distTop}px`
+      e.target.style.transform = `scale(${MAXIMUM_SCALE})`
+    } else {
+      e.target.style.transformOrigin = `${e.clientX}px ${e.clientY - distTop}px`
+      e.target.style.transform = `scale(${INITIAL_SCALE})`
     }
   }
-  const slideDirection = (e)  =>{
-    if(e.keyCode == 37){
-      carouselRef.current.slickPrev();
-    }
-    else if(e.keyCode == 39){
-      carouselRef.current.slickNext();
+  const slideDirection = (e) => {
+    if (e.keyCode == 37) {
+      carouselRef.current.slickPrev()
+    } else if (e.keyCode == 39) {
+      carouselRef.current.slickNext()
     }
   }
 
@@ -119,7 +123,6 @@ function Presentation(): JSX.Element {
     const carouselIndex = carousel.innerSlider.state.currentSlide
     const target = slideRef[carouselIndex].current
     const distTop = target.getBoundingClientRect().y
-
 
     /* 클릭 관련 변수 */
     let holding = false
@@ -254,7 +257,7 @@ function Presentation(): JSX.Element {
 
           if (zoom_ing) {
             // 줌 동작 진행 중
-            let delta = 0.15 // 변화율
+            let delta = 0.05 // 변화율
             const zoom_cur_dist = getZoomDistance(landmarksArray)
             //0~300정도의 사이값 나오는 배율 값
             let new_zoom_rate = parseInt(((zoom_cur_dist / zoom_start_dist) * 100).toFixed(0))
@@ -382,7 +385,7 @@ function Presentation(): JSX.Element {
     }
 
     const checkTabControl = (gesture, last_data, landmarks) => {
-      const canvas = gestureRef.current 
+      const canvas = gestureRef.current
       if (gesture === 'TAB_CONTROL' && last_data !== 'TAB_CONTROL') {
         tab_ing = true
         tab_start_y = getPointer(landmarks, canvas).y
@@ -445,27 +448,26 @@ function Presentation(): JSX.Element {
         console.error('Error accessing webcam:', error)
       }
     }
-      const stopWebcam = () => {
-    if (videoRef.current.srcObject) {
-      const tracks = videoRef.current.srcObject.getTracks();
-      tracks.forEach((track) => {
-        track.stop();
-      });
-      videoRef.current.srcObject = null;
+    const stopWebcam = () => {
+      if (videoRef.current.srcObject) {
+        const tracks = videoRef.current.srcObject.getTracks()
+        tracks.forEach((track) => {
+          track.stop()
+        })
+        videoRef.current.srcObject = null
+      }
     }
-  };
 
-    startWebcam();
-    window.addEventListener('resize', handleWindowSize);
-    window.addEventListener('keydown',handleEsc);
-    window.addEventListener('keydown',slideDirection);
-  
+    startWebcam()
+    window.addEventListener('resize', handleWindowSize)
+    window.addEventListener('keydown', handleEsc)
+    window.addEventListener('keydown', slideDirection)
 
     // cleanUp function (component unmount시 실행)
     return () => {
       window.removeEventListener('resize', handleWindowSize)
       window.removeEventListener('keypress', handleEsc)
-      window.removeEventListener('keydown',slideDirection);
+      window.removeEventListener('keydown', slideDirection)
       if (videoRef.current && videoRef.current.srcObject) {
         videoRef.current.srcObject.getTracks().forEach((track) => track.stop())
       }
@@ -482,25 +484,32 @@ function Presentation(): JSX.Element {
     <>
       <video ref={videoRef} autoPlay playsInline style={{ display: 'none' }}></video>
       <div style={{ width: '100%', height: '100%', backgroundColor: 'blue' }}>
-      <Slider ref={carouselRef} {...settings}>
+        <Slider ref={carouselRef} {...settings}>
           {selectedPdfList &&
             selectedPdfList.map((url, index) => (
-              <div key={`Page ${index + 1}`} >
-                <div style={{width:'100%',height:'100%',backgroundColor:'teal',overflow:'hidden'}}>
-                <img
-                  src={url}
-                  className="scale_transition"
-                  onDoubleClick={(e)=>{
-                    zoomWithDblClick(e)
-                  }}
-                  ref={slideRef[index]}
-                  alt={`Page ${index + 1}`}
+              <div key={`Page ${index + 1}`}>
+                <div
                   style={{
                     width: '100%',
                     height: '100%',
-                    objectFit: 'cover'
+                    backgroundColor: 'teal',
+                    overflow: 'hidden'
                   }}
-                />
+                >
+                  <img
+                    src={url}
+                    className="scale_transition"
+                    onDoubleClick={(e) => {
+                      zoomWithDblClick(e)
+                    }}
+                    ref={slideRef[index]}
+                    alt={`Page ${index + 1}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
+                  />
                 </div>
               </div>
             ))}
