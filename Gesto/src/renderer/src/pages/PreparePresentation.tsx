@@ -42,18 +42,18 @@ function PreparePresentation(): JSX.Element {
     renderEachPage(selectedPdf)
   }, [selectedPdf, renderEachPage])
 
-  if (loading) {
-    return (
-      <div className="load-box">
+  return (
+    loading?
+
+    <div className="load-box">
         <SyncLoader color={'#3071F2'} loading={loading} size={20} />
         <span className="load-txt">파일을 변환하고 있어요!</span>
       </div>
-    )
-  }
-
-  return (
+    
+    :
+    
     <>
-      <div className="presentation_left">
+     <div className="presentation_left">
         {selectedPdfList &&
           selectedPdfList.map((url, index) => (
             <div key={`Page ${index + 1}`}>
@@ -75,7 +75,9 @@ function PreparePresentation(): JSX.Element {
           />
         </div>
       </div>
-    </>
+      </>
+
+    
   )
 }
 
