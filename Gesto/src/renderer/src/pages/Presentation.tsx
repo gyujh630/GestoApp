@@ -198,7 +198,7 @@ function Presentation(): JSX.Element {
                 targetSlide.dispatchEvent(
                   simulateMouseEvent('mousedown', pointer.x, pointer.y)
                 ),
-              500
+              300
             )
           } else { //홀드중
             targetSlide.dispatchEvent(simulateMouseEvent('mousemove', pointer.x, pointer.y))
@@ -339,7 +339,7 @@ function Presentation(): JSX.Element {
         hold_end_time = new Date()
 
         /* 클릭 체크 */
-        if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 500) {
+        if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 300) {
           element.dispatchEvent(new MouseEvent('click', {
             bubbles: true,
             cancelable: true,
@@ -352,8 +352,8 @@ function Presentation(): JSX.Element {
         if (temp != undefined) {
           if (
             is_clicked &&
-            hold_end_time.getTime() - temp.getTime() < 600 &&
-            hold_end_time.getTime() - last_click_time > 2000
+            hold_end_time.getTime() - temp.getTime() < 700 &&
+            hold_end_time.getTime() - last_click_time > 500
           ) {
             element.dispatchEvent(new MouseEvent('dblclick', {
               bubbles: true,
