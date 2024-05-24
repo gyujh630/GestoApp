@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ipcRenderer } from "electron";
+import { ipcRenderer,screen } from "electron";
 import useStore from "@renderer/store/store";
 import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision'
 import { getGesture, getPointer, getZoomPointer, getZoomDistance, interpolate } from '../assets/gestureUtil' 
@@ -7,6 +7,7 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { c } from "vite/dist/node/types.d-aGj9QkWt";
+import { useNavigate } from "react-router-dom";
 
 
 
@@ -16,6 +17,7 @@ export interface Coordinate {
 }
 
 function Presentation(): JSX.Element {
+  const navigate = useNavigate();
 
   //선택된 pdf파일
   const selectedPdf = useStore((state) => state.selectedPdf)
@@ -56,6 +58,11 @@ function Presentation(): JSX.Element {
   const handleWindowSize = () => {
     setWindowSize({ width: window.innerWidth, height: window.innerHeight })
   }
+  const handleEsc = (event) => {
+    if (event.key === 'Escape') {
+       navigate('/PreparePresentation')}
+  };
+  
 
   //pdf그리기
   const renderPage = useCallback(
@@ -93,8 +100,17 @@ function Presentation(): JSX.Element {
       e.target.style.transform = `scale(${INITIAL_SCALE})`;
     }
   }
+  const slideDirection = (e)  =>{
+    if(e.keyCode == 37){
+      carouselRef.current.slickPrev();
+    }
+    else if(e.keyCode == 39){
+      carouselRef.current.slickNext();
+    }
+  }
 
   useEffect(() => {
+    // ipcRenderer.send('set-full-screen', true);
     let handLandmarker
     let animationFrameId
 
@@ -103,6 +119,7 @@ function Presentation(): JSX.Element {
     const carouselIndex = carousel.innerSlider.state.currentSlide
     const target = slideRef[carouselIndex].current
     const distTop = target.getBoundingClientRect().y
+
 
     /* 클릭 관련 변수 */
     let holding = false
@@ -154,8 +171,6 @@ function Presentation(): JSX.Element {
     let tab_ing: boolean = false
     let tab_state: boolean = false
     let tab_gauge: number = 0
-
-    window.addEventListener('resize', handleWindowSize)
 
     //handdetection 모델 호출한 후 detecthands()
     const initializeHandDetection = async () => {
@@ -430,12 +445,27 @@ function Presentation(): JSX.Element {
         console.error('Error accessing webcam:', error)
       }
     }
+      const stopWebcam = () => {
+    if (videoRef.current.srcObject) {
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach((track) => {
+        track.stop();
+      });
+      videoRef.current.srcObject = null;
+    }
+  };
 
-    startWebcam()
+    startWebcam();
+    window.addEventListener('resize', handleWindowSize);
+    window.addEventListener('keydown',handleEsc);
+    window.addEventListener('keydown',slideDirection);
+  
 
     // cleanUp function (component unmount시 실행)
     return () => {
       window.removeEventListener('resize', handleWindowSize)
+      window.removeEventListener('keypress', handleEsc)
+      window.removeEventListener('keydown',slideDirection);
       if (videoRef.current && videoRef.current.srcObject) {
         videoRef.current.srcObject.getTracks().forEach((track) => track.stop())
       }

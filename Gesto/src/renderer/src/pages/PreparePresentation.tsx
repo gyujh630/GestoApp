@@ -20,7 +20,7 @@ function PreparePresentation(): JSX.Element {
         const canvas = document.createElement('canvas')
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i)
-          const viewport = page.getViewport({ scale: 1 })
+          const viewport = page.getViewport({ scale: 2.5 })
           canvas.height = viewport.height
           canvas.width = viewport.width
           const render_context = {
@@ -42,16 +42,23 @@ function PreparePresentation(): JSX.Element {
     renderEachPage(selectedPdf)
   }, [selectedPdf, renderEachPage])
 
+  if (loading) {
+    return (
+      <div className="load-box">
+        <SyncLoader color={'#3071F2'} loading={loading} size={20} />
+        <span className="load-txt">파일을 변환하고 있어요!</span>
+      </div>
+    )
+  }
+
   return (
     loading?
-
     <div className="load-box">
         <SyncLoader color={'#3071F2'} loading={loading} size={20} />
         <span className="load-txt">파일을 변환하고 있어요!</span>
       </div>
     
     :
-    
     <>
      <div className="presentation_left">
         {selectedPdfList &&
