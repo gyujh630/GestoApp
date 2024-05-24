@@ -9,8 +9,8 @@ function App(): JSX.Element {
         <div id="slogan-box">
           <img id="home-logo" src={iconImage} alt="" />
           <div id="text-box">
-              <span className="slogan-blue">Gesture</span>
-              <span className="slogan">to Your Presentation!</span>
+            <span className="slogan-blue">Gesture</span>
+            <span className="slogan">to Your Presentation!</span>
           </div>
         </div>
         <div className="actions">
