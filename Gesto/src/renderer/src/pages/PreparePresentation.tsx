@@ -58,7 +58,7 @@ function PreparePresentation(): JSX.Element {
           selectedPdfList.map((url, index) => (
             <div key={`Page ${index + 1}`}>
               <div onClick={() => setSelectedPage(index)}>
-                <div className="left-img-box">
+                <div className={index==selectedPage?"left-img-box active":"left-img-box"}>
                   <img className="img-pages" src={url} alt={`Page ${index + 1}`} />
                 </div>
               </div>

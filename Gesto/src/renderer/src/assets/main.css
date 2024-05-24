@@ -459,6 +459,9 @@ code {
 .left-img-box:hover {
   border: 4px solid #3071F2;
 }
+.left-img-box.active {
+  border: 4px solid #3071F2;
+}
 
 .presentation_right {
   width:73%;
