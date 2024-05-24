@@ -10,7 +10,7 @@ function NavBar(): JSX.Element {
         <Link to="/" className="topbarBtn">
           <img className="topbar-icon" src={iconHome} alt="" />
         </Link>
-        <Link to="/help" className="topbarBtn">
+        <Link to="/guide" className="topbarBtn">
           <img className="topbar-icon" src={iconHelp} alt="" />
         </Link>
         <Link to="/setting" className="topbarBtn">
