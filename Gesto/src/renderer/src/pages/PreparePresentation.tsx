@@ -1,14 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import useStore from '@renderer/store/store'
 import { useNavigate } from 'react-router-dom'
+import { SyncLoader } from 'react-spinners'
 
 function PreparePresentation(): JSX.Element {
   const selectedPdf = useStore((state) => state.selectedPdf)
   const selectedPdfList = useStore((state) => state.selectedPdfList)
   const setSelectedPdfList = useStore((state) => state.setSelectedPdfList)
 
-  // const [imageList,setImageList] = useState([]);
   const [selectedPage, setSelectedPage] = useState(0)
+  const [loading, setLoading] = useState(true)
 
   const navigate = useNavigate()
 
@@ -31,33 +32,47 @@ function PreparePresentation(): JSX.Element {
           imagesList.push(img)
         }
         setSelectedPdfList(imagesList)
+        setLoading(false) // 로딩 완료
       }
     },
-    [selectedPdf]
+    [selectedPdf, setSelectedPdfList]
   )
+
   useEffect(() => {
     renderEachPage(selectedPdf)
-  }, [selectedPdf])
+  }, [selectedPdf, renderEachPage])
+
+  if (loading) {
+    return (
+      <div className="load-box">
+        <SyncLoader color={'#3071F2'} loading={loading} size={20} />
+        <span className="load-txt">파일을 변환하고 있어요!</span>
+      </div>
+    )
+  }
+
   return (
     <>
       <div className="presentation_left">
         {selectedPdfList &&
           selectedPdfList.map((url, index) => (
-            <>
-              <div>
-                <div onClick={() => setSelectedPage(index)} key={`Page ${index + 1}`}>
-                  <div className="left-img-box">
-                    <img className="img-pages" src={url} alt={`Page ${index + 1}`} />
-                  </div>
+            <div key={`Page ${index + 1}`}>
+              <div onClick={() => setSelectedPage(index)}>
+                <div className="left-img-box">
+                  <img className="img-pages" src={url} alt={`Page ${index + 1}`} />
                 </div>
-                <div className="page-index">{index + 1}</div>
               </div>
-            </>
+              <div className="page-index">{index + 1}</div>
+            </div>
           ))}
       </div>
       <div className="presentation_right">
         <div onClick={() => navigate('/Presentation')}>
-          <img id="img-selected" src={selectedPdfList[selectedPage]} />
+          <img
+            id="img-selected"
+            src={selectedPdfList[selectedPage]}
+            alt={`Selected Page ${selectedPage + 1}`}
+          />
         </div>
       </div>
     </>
