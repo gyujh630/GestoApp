@@ -77,6 +77,7 @@ function Presentation(): JSX.Element {
   }
   const handleEsc = (event) => {
     if (event.key === 'Escape') {
+      videoRef.current.srcObject.getTracks().forEach((track) => track.stop())
       navigate('/PreparePresentation')
       setTopBarState(true)
     }
@@ -234,7 +235,9 @@ function Presentation(): JSX.Element {
       const slider = carouselRef.current
       const index = slider.innerSlider.state.currentSlide
       const targetSlide = slideRef[index].current
-      const canvas = gestureRef.current
+      const canvas = gestureRef.current;
+      let startDist = 0;
+      let endDist = 0;
       if (canvas) {
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
@@ -245,7 +248,18 @@ function Presentation(): JSX.Element {
       if (landmarksArray.length != 0) {
         let pointer: Coordinate
         if (gestureNow == 'HOLD') {
-          pointer = getPointer(landmarksArray, canvas)
+          if(topCarouselRef.current.style.display!='none'){
+            if(!holding){
+              holding=true
+              //
+              startDist = getPointer(landmarksArray, canvas).x
+            }
+            else{
+
+            }
+
+          }
+          else{pointer = getPointer(landmarksArray, canvas)
           ctx.fillStyle = 'green'
           if (!holding) {
             //아직 홀드안했을때
@@ -267,6 +281,7 @@ function Presentation(): JSX.Element {
           // ctx.beginPath()
           // ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
           // ctx.fill()
+        }
         } else if (gestureNow == 'POINTER' || gestureNow == 'TAB_CONTROL') {
           pointer = getPointer(landmarksArray, canvas)
           ctx.fillStyle = 'red'
@@ -324,7 +339,12 @@ function Presentation(): JSX.Element {
         }
         // 제스처 유지 관련 변수 초기화
         if (gestureNow != 'HOLD') {
+          if(topCarouselRef.current.style.display=='flex'){
+            endDist = getPointer(landmarksArray,canvas).x
+            console.log(startDist-endDist,'@@@@')
+          }
           targetSlide.dispatchEvent(simulateMouseEvent('mouseup'));
+          holding = false;
         }
         if (gestureNow != 'ZOOM') {
           zoom_ing = false;
@@ -487,19 +507,11 @@ function Presentation(): JSX.Element {
     const startWebcam = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+        console.log(videoRef.current,'@@@비디오 여깅네~')
         videoRef.current.srcObject = stream
         await initializeHandDetection()
       } catch (error) {
         console.error('Error accessing webcam:', error)
-      }
-    }
-    const stopWebcam = () => {
-      if (videoRef.current.srcObject) {
-        const tracks = videoRef.current.srcObject.getTracks()
-        tracks.forEach((track) => {
-          track.stop()
-        })
-        videoRef.current.srcObject = null
       }
     }
 
@@ -514,6 +526,7 @@ function Presentation(): JSX.Element {
       window.removeEventListener('resize', handleWindowSize)
       window.removeEventListener('keypress', handleEsc)
       window.removeEventListener('keydown', slideDirection)
+      console.log(videoRef.current)
       if (videoRef.current) {
         videoRef.current.srcObject.getTracks().forEach((track) => track.stop())
         console.log('비디오끄기')
@@ -531,7 +544,7 @@ function Presentation(): JSX.Element {
 
   return (
     <>
-      <video ref={videoRef} autoPlay playsInline style={{ display: 'none' }}></video>
+      <video ref={videoRef} autoPlay playsInline style={{ position:'absolute'}}></video>
       <div style={{ width: '100%', height: windowSize.height, backgroundColor: 'black',position:'relative',paddingTop:slidePadding}}>
       <Slider  ref={carouselRef} {...settings}>
           {selectedPdfList &&
@@ -617,22 +630,6 @@ function Presentation(): JSX.Element {
                   />
                   </>
                   }
-                  
-
-            {/* {selectedPdfList &&
-            selectedPdfList.map((url, index) => (
-              
-                  <img
-                  key={`Page ${index + 1}`}
-                    src={url}
-                    alt={`Page ${index + 1}`}
-                    style={{
-                      width: 100,
-                      height: 180,
-                      objectFit: 'contain'
-                    }}
-                  />
-            ))} */}
             </div>
         <canvas
           ref={gestureRef}
