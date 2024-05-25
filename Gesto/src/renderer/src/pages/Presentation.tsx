@@ -180,7 +180,6 @@ function Presentation(): JSX.Element {
     const history: string[] = ['???']
     const SUBSITUTION_COUNT = 5 // 제스처 교체 카운트 기준
     const countMap = new Map()
-    countMap.set('TAB_CONTROL', 0)
     countMap.set('HOLD', 0)
     countMap.set('HOLD_POINTER', 0)
     countMap.set('POINTER', 0)
@@ -191,12 +190,6 @@ function Presentation(): JSX.Element {
     /* 위치, 속도 관련 변수 */
     let last_location: Coordinate = { x: 0, y: 0 }
     const standard_speed = interpolate(window.innerHeight)
-
-    /* 탭 컨트롤 관련 변수 */
-    let tab_start_y: number
-    let tab_ing: boolean = false
-    let tab_state: boolean = false
-    let tab_gauge: number = 0
 
     /* 상단탭 인덱싱 */
     let tb_start_x;
@@ -390,7 +383,6 @@ function Presentation(): JSX.Element {
       history.push(gesture)
       last_location = cur_location
       checkClick(gesture, last_data, landmarks)
-      checkTabControl(gesture, last_data, landmarks)
 
       if(topCarouselRef.current.style.display!='none'){
         const canvas = gestureRef.current
@@ -508,42 +500,6 @@ function Presentation(): JSX.Element {
       }
     }
 
-    const checkTabControl = (gesture, last_data, landmarks) => {
-      const canvas = gestureRef.current
-      if (gesture === 'TAB_CONTROL' && last_data !== 'TAB_CONTROL') {
-        tab_ing = true;
-        tab_start_y = getPointer(landmarks, canvas).y
-      } else if (last_data === 'TAB_CONTROL' && gesture !== 'TAB_CONTROL') {
-        tab_ing = false;
-      }
-
-      if (tab_ing) {
-        const cur_y = getPointer(landmarks, canvas).y
-        const y_range = canvas.offsetHeight * 0.33 // 기준 범위
-        const gauge_max = 100
-
-        // 절댓값을 사용하여 게이지 값 계산
-        const distance = Math.abs(tab_start_y - cur_y)
-        const tab_gauge = Math.min((distance / y_range) * gauge_max, gauge_max).toFixed(0)
-
-        gaugeRef.current.style.height=`${tab_gauge}%`
-        if (cur_y > tab_start_y + y_range && !tab_state) {
-          console.log('상단바 내리기')
-           topCarouselRef.current.style.display = 'flex'
-           topSlideRef.forEach((el, index) => {
-             el.current.src =
-               selectedPdfList[carouselRef.current.innerSlider.state.currentSlide - 2 + index]
-           })
-          tab_state = true
-        }
-        if (cur_y < tab_start_y - y_range && tab_state) {
-          console.log('상단바 올리기')
-          topCarouselRef.current.style.display = 'none'
-          tab_state = false
-        }
-      }
-    }
-
     //비디오에서 손 감지
     const detectHands = (): void => {
       if (videoRef.current && videoRef.current.readyState >= 2) {
@@ -570,6 +526,7 @@ function Presentation(): JSX.Element {
     //웹캠 시작시킨 후 initial hand detection
     const startWebcam = async () => {
       try {
+        document.body.style.cursor = 'none'
         const stream = await navigator.mediaDevices.getUserMedia({ video: true })
         console.log(videoRef.current,'@@@비디오 여깅네~')
         videoRef.current.srcObject = stream
@@ -587,6 +544,7 @@ function Presentation(): JSX.Element {
 
     // cleanUp function (component unmount시 실행)
     return () => {
+      document.body.style.cursor = 'default'
       window.removeEventListener('resize', handleWindowSize)
       window.removeEventListener('keypress', handleEsc)
       window.removeEventListener('keydown', slideDirection)

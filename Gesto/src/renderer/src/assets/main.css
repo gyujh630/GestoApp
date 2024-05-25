@@ -437,7 +437,7 @@ code {
 
 .main-box {
   position: absolute;
-  top: 42%; /* 상위 요소 높이 기준 상단 50% 위치 */
+  top: 50%; /* 상위 요소 높이 기준 상단 50% 위치 */
   left: 50%; /* 상위 요소 너비 기준 왼쪽 50% 위치 */
   transform: translate(-50%, -50%);
   width: 500px;
@@ -450,7 +450,7 @@ code {
 
 .preview {
   position: absolute;
-  top: 42%; /* 상위 요소 높이 기준 상단 50% 위치 */
+  top: 50%; /* 상위 요소 높이 기준 상단 50% 위치 */
   left: 50%; /* 상위 요소 너비 기준 왼쪽 50% 위치 */
   transform: translate(-50%, -50%);
   width: 600px;

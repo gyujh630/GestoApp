@@ -111,7 +111,7 @@ function isFingerStraight(landmarks, fingerNum): boolean {
     // 두 벡터가 이루는 각도 저장 - 한 관절이 접혔는지 판단하는 요소
     angles[i - 1] = getAngle(v1, v2)
   }
-  if (angles[0] <= 30 && angles[1] <= 30) {
+  if (angles[0] <= 30 || angles[1] <= 30) {
     return true
   } else return false
 }
@@ -174,14 +174,6 @@ export function getGesture(landmarks): string {
   }
 
   if (second_hand == undefined) {
-    /* TAB CONTROL */
-    if (
-      isFingerStraight(first_hand, 1) &&
-      isFingerStraight(first_hand, 2) &&
-      (isFingerFold(first_hand, 3, 40, 10, 0) || isFingerFold(first_hand, 4, 40, 10, 0))
-    ) {
-      return 'TAB_CONTROL'
-    }
     /* HOLD */
     if (
       isFingerFold(first_hand, 3, 20, 45, 0) ||

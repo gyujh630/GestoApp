@@ -33,9 +33,9 @@ function NavBar(): JSX.Element {
           <Link to="/guide" className="topbarBtn" onClick={handleClick}>
             <img className="topbar-icon" src={iconHelp} alt="" />
           </Link>
-          <Link to="/setting" className="topbarBtn" onClick={handleClick}>
+          {/* <Link to="/setting" className="topbarBtn" onClick={handleClick}>
             <img className="topbar-icon" src={iconSetting} alt="" />
-          </Link>
+          </Link> */}
         </div>
       </div>
     </>
