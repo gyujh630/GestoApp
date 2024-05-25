@@ -41,9 +41,15 @@ function Presentation(): JSX.Element {
   const carouselRef = useRef(null)
   const topCarouselRef = useRef(null)
   const topSlideRef = Array.from({ length: 5 }).map(() => useRef())
-  const gaugeRef = useRef(null);
 
   const [slidePadding,setSlidePadding] = useState(0);
+
+  const zoom = new Image();
+  zoom.src = zoomSrc
+  const grab = new Image();
+  grab.src = dragSrc
+  const images = [zoomSrc,dragSrc];
+  const loadedImages = {};
 
   const settings = {
     dots: false,
@@ -192,12 +198,15 @@ function Presentation(): JSX.Element {
     let tab_state: boolean = false
     let tab_gauge: number = 0
 
-    const zoom = new Image();
-    zoom.src = zoomSrc
-    const grab = new Image();
-    grab.src = dragSrc
-    const images = [zoomSrc,dragSrc];
-    const loadedImages = {};
+    /* 상단탭 인덱싱 */
+    let tb_start_x;
+    let tb_index = 5;
+    let tb_hold_ing = false;
+    let tb_left;
+    let tb_right;
+    const standard = window.innerWidth*8/100
+    console.log('standard: ',standard)
+    const maximum = selectedPdfList.length-1;
     
     function preloadImages() {
       for (let i = 0; i < images.length; i++) {
@@ -244,23 +253,13 @@ function Presentation(): JSX.Element {
         canvas.height = canvas.offsetHeight;
       }
       const ctx = canvas.getContext('2d')
+      ctx.globalAlpha = '0.6'
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.lineWidth = 1
       if (landmarksArray.length != 0) {
         let pointer: Coordinate
         if (gestureNow == 'HOLD') {
-          if(topCarouselRef.current.style.display!='none'){
-            if(!holding){
-              holding=true
-              //
-              startDist = getPointer(landmarksArray, canvas).x
-            }
-            else{
-
-            }
-
-          }
-          else{pointer = getPointer(landmarksArray, canvas)
+          pointer = getPointer(landmarksArray, canvas)
           ctx.fillStyle = 'green'
           if (!holding) {
             //아직 홀드안했을때
@@ -278,16 +277,11 @@ function Presentation(): JSX.Element {
           } else {
             console.error('Image not preloaded:', dragSrc);
           }  
-
-          // ctx.beginPath()
-          // ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
-          // ctx.fill()
-        }
         } else if (gestureNow == 'POINTER' || gestureNow == 'TAB_CONTROL') {
           pointer = getPointer(landmarksArray, canvas)
-          ctx.fillStyle = 'red'
+          ctx.fillStyle = 'blue'
           ctx.beginPath()
-          ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
+          ctx.arc(pointer.x, pointer.y, 10, 0, 2 * Math.PI)
           ctx.fill()
         } else if (gestureNow == 'ZOOM_POINTER') {
           pointer = getZoomPointer(landmarksArray, canvas)
@@ -350,7 +344,8 @@ function Presentation(): JSX.Element {
         if (gestureNow != 'ZOOM') {
           zoom_ing = false;
         }
-      }
+
+    }
     }
 
     //제스처 예측 및 처리
@@ -394,9 +389,77 @@ function Presentation(): JSX.Element {
       }
       history.push(gesture)
       last_location = cur_location
-      drawLandmarks(landmarks, gesture)
       checkClick(gesture, last_data, landmarks)
       checkTabControl(gesture, last_data, landmarks)
+
+      if(topCarouselRef.current.style.display!='none'){
+        const canvas = gestureRef.current
+        if (canvas) {
+          canvas.width = canvas.offsetWidth;
+          canvas.height = canvas.offsetHeight;
+        }
+        const ctx = canvas.getContext('2d')
+        ctx.globalAlpha = '0.6'
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        const pointer  = getPointer(landmarks,canvas)
+        if (gesture == "HOLD" && last_data != "HOLD") {
+          tb_start_x = getPointer(landmarks,canvas).x;
+          tb_hold_ing = true;
+          tb_left = tb_start_x - standard;
+          tb_right = tb_start_x + standard;
+        } else if (gesture != "HOLD" && last_data == "HOLD") {
+          carouselRef.current.slickGoTo(tb_index)
+          tb_hold_ing = false;
+        }
+
+        if (tb_hold_ing) {
+          let tb_cur_x = getPointer(landmarks, canvas).x;
+          let move_dist = Math.abs(tb_start_x - tb_cur_x);
+          if (tb_cur_x < tb_start_x) {
+            //왼쪽으로 움직이기, 상단탭 왼쪽으로이동
+            if (tb_cur_x < tb_left ) {
+              tb_left -= standard;
+              tb_right -= standard;
+              if(tb_index<selectedPdfList.length-1)tb_index += 1;
+
+              topSlideRef.forEach((el, index) => {
+                el.current.src =
+                  selectedPdfList[tb_index-2+index]
+              })
+            }
+
+          } else {
+            if (tb_cur_x > tb_right ) {
+              console.log('우측으로~')
+              tb_left += standard;
+              tb_right += standard;
+              if(tb_index>0)tb_index -= 1;
+              console.log(tb_index);
+            topSlideRef.forEach((el, index) => {
+              el.current.src =
+                selectedPdfList[tb_index-2+index]
+            })
+            }
+          }
+        }
+        if(gesture =="HOLD"){
+          if (loadedImages[dragSrc]) {
+            ctx.drawImage(loadedImages[dragSrc], pointer.x, pointer.y,40,40);
+          } else {
+            console.error('Image not preloaded:', dragSrc);
+          }  
+        }
+        else{
+          ctx.fillStyle = 'blue'
+          ctx.beginPath()
+          ctx.arc(pointer.x, pointer.y, 10, 0, 2 * Math.PI)
+          ctx.fill()
+        }
+
+      }
+      else{
+        drawLandmarks(landmarks, gesture)
+      }
     }
 
     const checkClick = (gesture: string, last_data: string, landmarks): void => {
@@ -463,7 +526,6 @@ function Presentation(): JSX.Element {
         const distance = Math.abs(tab_start_y - cur_y)
         const tab_gauge = Math.min((distance / y_range) * gauge_max, gauge_max).toFixed(0)
 
-        console.log(tab_gauge)
         gaugeRef.current.style.height=`${tab_gauge}%`
         if (cur_y > tab_start_y + y_range && !tab_state) {
           console.log('상단바 내리기')
@@ -578,8 +640,9 @@ function Presentation(): JSX.Element {
               </div>
             ))}
         </Slider>
-            <div ref={topCarouselRef} style={{width:'100%',height:'40%',position:'absolute',top:0,left:0,backgroundColor:'tomato',display:'none',alignItems:'center',justifyContent:'space-between'}}>
-            {carouselRef.current&&
+            <div ref={topCarouselRef} style={{width:'100%',height:'40%',position:'absolute',top:0,left:0,backgroundColor:'tomato',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            {
+            carouselRef.current&&
               <><img
                     ref={topSlideRef[0]}
                     src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide-2]}
@@ -632,9 +695,6 @@ function Presentation(): JSX.Element {
                   />
                   </>
                   }
-            </div>
-            <div style={{position:'absolute',top:40,left:20,backgroundColor:'white',width:40,height:200}}>
-              <div ref={gaugeRef} style={{position:'absolute',bottom:0,left:0,width:40,height:200,backgroundColor:'orange'}}></div>
             </div>
         <canvas
           ref={gestureRef}
