@@ -41,6 +41,7 @@ function Presentation(): JSX.Element {
   const carouselRef = useRef(null)
   const topCarouselRef = useRef(null)
   const topSlideRef = Array.from({ length: 5 }).map(() => useRef())
+  const gaugeRef = useRef(null);
 
   const [slidePadding,setSlidePadding] = useState(0);
 
@@ -463,6 +464,7 @@ function Presentation(): JSX.Element {
         const tab_gauge = Math.min((distance / y_range) * gauge_max, gauge_max).toFixed(0)
 
         console.log(tab_gauge)
+        gaugeRef.current.style.height=`${tab_gauge}%`
         if (cur_y > tab_start_y + y_range && !tab_state) {
           console.log('상단바 내리기')
            topCarouselRef.current.style.display = 'flex'
@@ -630,6 +632,9 @@ function Presentation(): JSX.Element {
                   />
                   </>
                   }
+            </div>
+            <div style={{position:'absolute',top:40,left:20,backgroundColor:'white',width:40,height:200}}>
+              <div ref={gaugeRef} style={{position:'absolute',bottom:0,left:0,width:40,height:200,backgroundColor:'orange'}}></div>
             </div>
         <canvas
           ref={gestureRef}
