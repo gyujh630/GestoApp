@@ -463,6 +463,7 @@ function Presentation(): JSX.Element {
     //웹캠 시작시킨 후 initial hand detection
     const startWebcam = async () => {
       try {
+        document.body.style.cursor = 'none'
         const stream = await navigator.mediaDevices.getUserMedia({ video: true })
         console.log(videoRef.current,'@@@비디오 여깅네~')
         videoRef.current.srcObject = stream
@@ -480,6 +481,7 @@ function Presentation(): JSX.Element {
 
     // cleanUp function (component unmount시 실행)
     return () => {
+      document.body.style.cursor = 'default'
       window.removeEventListener('resize', handleWindowSize)
       window.removeEventListener('keypress', handleEsc)
       window.removeEventListener('keydown', slideDirection)
