@@ -523,20 +523,20 @@ function Presentation(): JSX.Element {
       // setTimeout(detectHands, 100)
     }
 
-    //웹캠 시작시킨 후 initial hand detection
-    const startWebcam = async () => {
-      try {
-        document.body.style.cursor = 'none'
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-        console.log(videoRef.current,'@@@비디오 여깅네~')
-        videoRef.current.srcObject = stream
-        await initializeHandDetection()
-      } catch (error) {
-        console.error('Error accessing webcam:', error)
-      }
-    }
+    // //웹캠 시작시킨 후 initial hand detection
+    // const startWebcam = async () => {
+    //   try {
+    //     document.body.style.cursor = 'none'
+    //     const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+    //     console.log(videoRef.current,'@@@비디오 여깅네~')
+    //     videoRef.current.srcObject = stream
+    //     await initializeHandDetection()
+    //   } catch (error) {
+    //     console.error('Error accessing webcam:', error)
+    //   }
+    // }
 
-    startWebcam()
+    // startWebcam()
     setSlidePadding((windowSize.height-slideRef[0].current.offsetHeight)/2)
     window.addEventListener('resize', handleWindowSize)
     window.addEventListener('keydown', handleEsc)
@@ -566,9 +566,17 @@ function Presentation(): JSX.Element {
 
   return (
     <>
-      <video ref={videoRef} autoPlay playsInline style={{ position:'absolute'}}></video>
-      <div style={{ width: '100%', height: windowSize.height, backgroundColor: 'black',position:'relative',paddingTop:slidePadding}}>
-      <Slider  ref={carouselRef} {...settings}>
+      <video ref={videoRef} autoPlay playsInline style={{ position: 'absolute' }}></video>
+      <div
+        style={{
+          width: '100%',
+          height: windowSize.height,
+          backgroundColor: 'black',
+          position: 'relative',
+          paddingTop: slidePadding
+        }}
+      >
+        <Slider ref={carouselRef} {...settings}>
           {selectedPdfList &&
             selectedPdfList.map((url, index) => (
               <div key={`Page ${index + 1}`}>
@@ -577,7 +585,7 @@ function Presentation(): JSX.Element {
                     width: '100%',
                     height: '100%',
                     overflow: 'hidden',
-                    position:'relative'
+                    position: 'relative'
                   }}
                 >
                   <img
@@ -591,69 +599,33 @@ function Presentation(): JSX.Element {
                     style={{
                       width: '100%',
                       height: '100%',
-                      objectFit: 'cover',
+                      objectFit: 'cover'
                     }}
                   />
                 </div>
               </div>
             ))}
         </Slider>
-            <div ref={topCarouselRef} style={{width:'100%',height:'40%',position:'absolute',top:0,left:0,backgroundColor:'tomato',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-            {
-            carouselRef.current&&
-              <><img
-                    ref={topSlideRef[0]}
-                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide-2]}
-                    alt={`Page `}
-                    style={{
-                      width: 100,
-                      height: 180,
-                      objectFit: 'contain'
-                    }}
-                  />
-            <img
-                    ref={topSlideRef[1]}
-                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide-1]}
-                    alt={`Page `}
-                    style={{
-                      width: 100,
-                      height: 180,
-                      objectFit: 'contain'
-                    }}
-                  />
-                  <img
-                  ref={topSlideRef[2]}
-                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide]}
-                    alt={`Page `}
-                    style={{
-                      width: 100,
-                      height: 180,
-                      objectFit: 'contain'
-                    }}
-                  />      
-                  <img
-                  ref={topSlideRef[3]}
-                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide+1]}
-                    alt={`Page `}
-                    style={{
-                      width: 100,
-                      height: 180,
-                      objectFit: 'contain'
-                    }}
-                  />
-                  <img
-                  ref={topSlideRef[4]}
-                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide+2]}
-                    alt={`Page`}
-                    style={{
-                      width: 100,
-                      height: 180,
-                      objectFit: 'contain'
-                    }}
-                  />
+        <div ref={topCarouselRef} className="tab">
+          {carouselRef.current && (
+            <>
+              {[...Array(5)].map((_, index) => {
+                const slideIndex = carouselRef.current.innerSlider.state.currentSlide + index - 2
+                return (
+                  <>
+                    <img
+                      key={slideIndex}
+                      ref={topSlideRef[index]}
+                      src={selectedPdfList[slideIndex]}
+                      alt={`Page ${slideIndex}`}
+                      className="tab-slide-img"
+                    />
                   </>
-                  }
-            </div>
+                )
+              })}
+            </>
+          )}
+        </div>
         <canvas
           ref={gestureRef}
           style={{
