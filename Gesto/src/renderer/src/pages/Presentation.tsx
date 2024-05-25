@@ -435,7 +435,7 @@ function Presentation(): JSX.Element {
 
       if (tab_ing) {
         const cur_y = getPointer(landmarks, canvas).y
-        const y_range = canvas.offsetHeight * 0.28 // 기준 범위
+        const y_range = canvas.offsetHeight * 0.33 // 기준 범위
         const gauge_max = 100
 
         // 절댓값을 사용하여 게이지 값 계산
@@ -443,22 +443,18 @@ function Presentation(): JSX.Element {
         const tab_gauge = Math.min((distance / y_range) * gauge_max, gauge_max).toFixed(0)
 
         console.log(tab_gauge)
-        if(tab_gauge=='0'){
-          topCarouselRef.current.style.display='flex'
-          topSlideRef.forEach((el,index)=>{
-            el.current.src = selectedPdfList[carouselRef.current.innerSlider.state.currentSlide-2+index]
-          })
-        }
-        else if(tab_gauge=='100'){
-          topCarouselRef.current.style.display='none'
-        }
-
         if (cur_y > tab_start_y + y_range && !tab_state) {
           console.log('상단바 내리기')
+           topCarouselRef.current.style.display = 'flex'
+           topSlideRef.forEach((el, index) => {
+             el.current.src =
+               selectedPdfList[carouselRef.current.innerSlider.state.currentSlide - 2 + index]
+           })
           tab_state = true
         }
         if (cur_y < tab_start_y - y_range && tab_state) {
           console.log('상단바 올리기')
+          topCarouselRef.current.style.display = 'none'
           tab_state = false
         }
       }
