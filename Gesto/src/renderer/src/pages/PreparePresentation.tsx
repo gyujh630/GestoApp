@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import useStore from '@renderer/store/store'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { SyncLoader } from 'react-spinners'
 
 function PreparePresentation(): JSX.Element {
@@ -11,7 +11,9 @@ function PreparePresentation(): JSX.Element {
   const setTopBarState = useStore((state) => state.setTopBarState)
 
   const [selectedPage, setSelectedPage] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const { state } = useLocation();
+
+  const [loading, setLoading] = useState(state &&state.new?true:false)
 
   const navigate = useNavigate()
 
@@ -42,7 +44,14 @@ function PreparePresentation(): JSX.Element {
   )
 
   useEffect(() => {
-    renderEachPage(selectedPdf)
+    if(state&& state.new){
+      renderEachPage(selectedPdf)
+    }
+    else{
+      setLoading(false)
+      setTopBarState(true)
+    }
+    
   }, [selectedPdf, renderEachPage])
 
   if (loading) {

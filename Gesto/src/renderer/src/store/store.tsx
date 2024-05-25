@@ -7,7 +7,7 @@ const useStore = create((set) => ({
   setSelectedPdfList: (list) => set({ selectedPdfList: list }),
 
   topBarState: false,
-  setTopBarState: () => set((state) => ({ showStartLink: !state.showStartLink }))
+  setTopBarState: (bool) => set((state) => ({ showStartLink: bool }))
 }))
 
 export default useStore;

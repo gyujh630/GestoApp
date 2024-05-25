@@ -25,7 +25,7 @@ function RenderPdf(): JSX.Element {
   useEffect(() => {
     if (file) {
       setGlobalPdf(file)
-      navigate('/PreparePresentation')
+      navigate('/PreparePresentation',{ state: { new: true } })
     }
   }, [file])
 
