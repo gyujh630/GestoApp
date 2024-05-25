@@ -523,18 +523,18 @@ function Presentation(): JSX.Element {
       // setTimeout(detectHands, 100)
     }
 
-    // //웹캠 시작시킨 후 initial hand detection
-    // const startWebcam = async () => {
-    //   try {
-    //     document.body.style.cursor = 'none'
-    //     const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-    //     console.log(videoRef.current,'@@@비디오 여깅네~')
-    //     videoRef.current.srcObject = stream
-    //     await initializeHandDetection()
-    //   } catch (error) {
-    //     console.error('Error accessing webcam:', error)
-    //   }
-    // }
+    //웹캠 시작시킨 후 initial hand detection
+    const startWebcam = async () => {
+      try {
+        document.body.style.cursor = 'none'
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+        console.log(videoRef.current,'@@@비디오 여깅네~')
+        videoRef.current.srcObject = stream
+        await initializeHandDetection()
+      } catch (error) {
+        console.error('Error accessing webcam:', error)
+      }
+    }
 
     // startWebcam()
     setSlidePadding((windowSize.height-slideRef[0].current.offsetHeight)/2)
