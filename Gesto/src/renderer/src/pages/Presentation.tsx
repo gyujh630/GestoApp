@@ -10,10 +10,17 @@ import {
   interpolate
 } from '../assets/gestureUtil'
 import Slider from 'react-slick'
-import 'slick-carousel/slick/slick.css'
-import 'slick-carousel/slick/slick-theme.css'
-import { c } from 'vite/dist/node/types.d-aGj9QkWt'
 import { useNavigate } from 'react-router-dom'
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
+
+
+const zoomSrc = 'src/assets/img/zoom2.png'
+const dragSrc = 'src/assets/img/drag_1.png'
+
+
+
 
 export interface Coordinate {
   x: number
@@ -32,7 +39,10 @@ function Presentation(): JSX.Element {
   const gestureRef = useRef(null)
   const videoRef = useRef(null)
   const carouselRef = useRef(null)
-  const zoomRef = useRef(null)
+  const topCarouselRef = useRef(null)
+  const topSlideRef = Array.from({ length: 5 }).map(() => useRef())
+
+  const [slidePadding,setSlidePadding] = useState(0);
 
   const settings = {
     dots: false,
@@ -40,7 +50,7 @@ function Presentation(): JSX.Element {
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
-    arrows: false
+    arrows: false,
   }
 
   const [windowSize, setWindowSize] = useState({
@@ -60,8 +70,10 @@ function Presentation(): JSX.Element {
     return event
   }
 
-  const handleWindowSize = () => {
+  const 
+  handleWindowSize = () => {
     setWindowSize({ width: window.innerWidth, height: window.innerHeight })
+    setSlidePadding((windowSize.height-slideRef[0].current.offsetHeight)/2)
   }
   const handleEsc = (event) => {
     if (event.key === 'Escape') {
@@ -89,19 +101,21 @@ function Presentation(): JSX.Element {
     },
     [selectedPdf]
   )
+
+  let slideDistTop;
+  
+
   const zoomWithDblClick = (e) => {
     const INITIAL_SCALE = 1
     const MAXIMUM_SCALE = 3
     const transformValue = e.target.style.transform
     // transform 값에서 scale 부분 추출
     const scaleValue = transformValue.match(/scale\(([^)]+)\)/)?.[1]
-    const distTop = e.target.getBoundingClientRect().y
-
     if (scaleValue == INITIAL_SCALE) {
-      e.target.style.transformOrigin = `${e.clientX}px ${e.clientY - distTop}px`
+      e.target.style.transformOrigin = `${e.clientX}px ${e.clientY - slideDistTop}px`
       e.target.style.transform = `scale(${MAXIMUM_SCALE})`
     } else {
-      e.target.style.transformOrigin = `${e.clientX}px ${e.clientY - distTop}px`
+      e.target.style.transformOrigin = `${e.clientX}px ${e.clientY - slideDistTop}px`
       e.target.style.transform = `scale(${INITIAL_SCALE})`
     }
   }
@@ -123,6 +137,7 @@ function Presentation(): JSX.Element {
     const carouselIndex = carousel.innerSlider.state.currentSlide
     const target = slideRef[carouselIndex].current
     const distTop = target.getBoundingClientRect().y
+    slideDistTop = distTop
 
     /* 클릭 관련 변수 */
     let holding = false
@@ -175,7 +190,24 @@ function Presentation(): JSX.Element {
     let tab_state: boolean = false
     let tab_gauge: number = 0
 
-    //handdetection 모델 호출한 후 detecthands()
+    const zoom = new Image();
+    zoom.src = zoomSrc
+    const grab = new Image();
+    grab.src = dragSrc
+    const images = [zoomSrc,dragSrc];
+    const loadedImages = {};
+    
+    function preloadImages() {
+      for (let i = 0; i < images.length; i++) {
+        const img = new Image();
+        img.src = images[i];
+        loadedImages[images[i]] = img;
+      }
+    }
+    preloadImages();
+    
+
+
     const initializeHandDetection = async () => {
       try {
         const vision = await FilesetResolver.forVisionTasks(
@@ -204,8 +236,8 @@ function Presentation(): JSX.Element {
       const targetSlide = slideRef[index].current
       const canvas = gestureRef.current
       if (canvas) {
-        canvas.width = canvas.offsetWidth
-        canvas.height = canvas.offsetHeight
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
       }
       const ctx = canvas.getContext('2d')
       ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -226,9 +258,15 @@ function Presentation(): JSX.Element {
             //홀드중
             targetSlide.dispatchEvent(simulateMouseEvent('mousemove', pointer.x, pointer.y))
           }
-          ctx.beginPath()
-          ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
-          ctx.fill()
+          if (loadedImages[dragSrc]) {
+            ctx.drawImage(loadedImages[dragSrc], pointer.x, pointer.y,40,40);
+          } else {
+            console.error('Image not preloaded:', dragSrc);
+          }  
+
+          // ctx.beginPath()
+          // ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
+          // ctx.fill()
         } else if (gestureNow == 'POINTER' || gestureNow == 'TAB_CONTROL') {
           pointer = getPointer(landmarksArray, canvas)
           ctx.fillStyle = 'red'
@@ -237,13 +275,14 @@ function Presentation(): JSX.Element {
           ctx.fill()
         } else if (gestureNow == 'ZOOM_POINTER') {
           pointer = getZoomPointer(landmarksArray, canvas)
-          ctx.fillStyle = 'blue'
-          ctx.beginPath()
-          ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
-          ctx.fill()
+          if (loadedImages[zoomSrc]) {
+            ctx.drawImage(loadedImages[zoomSrc], pointer.x, pointer.y,40,40);
+          } else {
+            console.error('Image not preloaded:', zoomSrc);
+          }  
         } else if (gestureNow == 'ZOOM') {
-          let x, y
-          let prev_rate
+          let x, y;
+          let prev_rate;
           if (zoom_ing == false) {
             zoom_ing = true
             zoom_start_dist = getZoomDistance(landmarksArray)
@@ -263,13 +302,14 @@ function Presentation(): JSX.Element {
             let new_zoom_rate = parseInt(((zoom_cur_dist / zoom_start_dist) * 100).toFixed(0))
             zoom_rate = zoom_rate + (new_zoom_rate - prev_zoom_rate) * delta
             zoom_rate = Math.max(MIN_ZOOM_RATE, Math.min(zoom_rate, MAX_ZOOM_RATE))
-            ctx.fillStyle = 'blue'
+            
           }
           pointer = initialPoint
-          ctx.fillStyle = 'blue'
-          ctx.beginPath()
-          ctx.arc(pointer.x, pointer.y, 4, 0, 2 * Math.PI)
-          ctx.fill()
+          if (loadedImages[zoomSrc]) {
+            ctx.drawImage(loadedImages[zoomSrc], pointer.x, pointer.y,40,40);
+          } else {
+            console.error('Image not preloaded:', zoomSrc);
+          }  
 
           //초점 변화 계산식
           x = prevInitialPoint.x - (initialPoint.x * zoom_rate) / prev_rate
@@ -278,29 +318,29 @@ function Presentation(): JSX.Element {
           //슬라이드 영역 외의 범위는 확대 축소 안되게 범위 조절 필요
           // initialpPoint slide top~ slide top+height안에 있을때만
           if (initialPoint.y > distTop && initialPoint.y < targetSlide.offsetHeight + distTop) {
-            targetSlide.style.transformOrigin = `${initialPoint.x}px ${initialPoint.y - distTop}px`
-            targetSlide.style.transform = `scale(${zoom_rate / 100})`
+            targetSlide.style.transformOrigin = `${initialPoint.x}px ${initialPoint.y - distTop}px`;
+            targetSlide.style.transform = `scale(${zoom_rate / 100})`;
           }
         }
         // 제스처 유지 관련 변수 초기화
         if (gestureNow != 'HOLD') {
-          targetSlide.dispatchEvent(simulateMouseEvent('mouseup'))
+          targetSlide.dispatchEvent(simulateMouseEvent('mouseup'));
         }
         if (gestureNow != 'ZOOM') {
-          zoom_ing = false
+          zoom_ing = false;
         }
       }
     }
 
     //제스처 예측 및 처리
     const predictGesture = (landmarks): void => {
-      let update_flag: boolean = false
-      let gesture: string = '???'
-      const last_data = history[history.length - 1] // 가장 마지막에 인식된 제스처
+      let update_flag: boolean = false;
+      let gesture: string = '???';
+      const last_data = history[history.length - 1]; // 가장 마지막에 인식된 제스처
       const cur_location: Coordinate = {
         x: landmarks[0][8].x,
         y: landmarks[0][8].y
-      }
+      };
       const speed_per_frame: number =
         Math.sqrt(
           (cur_location.x - last_location.x) ** 2 + (cur_location.y - last_location.y) ** 2
@@ -387,10 +427,10 @@ function Presentation(): JSX.Element {
     const checkTabControl = (gesture, last_data, landmarks) => {
       const canvas = gestureRef.current
       if (gesture === 'TAB_CONTROL' && last_data !== 'TAB_CONTROL') {
-        tab_ing = true
+        tab_ing = true;
         tab_start_y = getPointer(landmarks, canvas).y
       } else if (last_data === 'TAB_CONTROL' && gesture !== 'TAB_CONTROL') {
-        tab_ing = false
+        tab_ing = false;
       }
 
       if (tab_ing) {
@@ -403,6 +443,15 @@ function Presentation(): JSX.Element {
         const tab_gauge = Math.min((distance / y_range) * gauge_max, gauge_max).toFixed(0)
 
         console.log(tab_gauge)
+        if(tab_gauge=='0'){
+          topCarouselRef.current.style.display='flex'
+          topSlideRef.forEach((el,index)=>{
+            el.current.src = selectedPdfList[carouselRef.current.innerSlider.state.currentSlide-2+index]
+          })
+        }
+        else if(tab_gauge=='100'){
+          topCarouselRef.current.style.display='none'
+        }
 
         if (cur_y > tab_start_y + y_range && !tab_state) {
           console.log('상단바 내리기')
@@ -430,7 +479,7 @@ function Presentation(): JSX.Element {
           const ctx = canvas.getContext('2d')
           ctx.clearRect(0, 0, canvas.width, canvas.height)
           //손 사라질시 제스처 유지 관련 변수 초기화
-          targetSlide.dispatchEvent(simulateMouseEvent('mouseup'))
+          // targetSlide.dispatchEvent(simulateMouseEvent('mouseup'))
           zoom_ing = false
         }
       }
@@ -459,6 +508,7 @@ function Presentation(): JSX.Element {
     }
 
     startWebcam()
+    setSlidePadding((windowSize.height-slideRef[0].current.offsetHeight)/2)
     window.addEventListener('resize', handleWindowSize)
     window.addEventListener('keydown', handleEsc)
     window.addEventListener('keydown', slideDirection)
@@ -468,14 +518,17 @@ function Presentation(): JSX.Element {
       window.removeEventListener('resize', handleWindowSize)
       window.removeEventListener('keypress', handleEsc)
       window.removeEventListener('keydown', slideDirection)
-      if (videoRef.current && videoRef.current.srcObject) {
+      if (videoRef.current) {
         videoRef.current.srcObject.getTracks().forEach((track) => track.stop())
+        console.log('비디오끄기')
       }
       if (handLandmarker) {
         handLandmarker.close()
+        console.log('랜마끄기')
       }
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId)
+        console.log('애니끄기')
       }
     }
   }, [])
@@ -483,8 +536,8 @@ function Presentation(): JSX.Element {
   return (
     <>
       <video ref={videoRef} autoPlay playsInline style={{ display: 'none' }}></video>
-      <div style={{ width: '100%', height: '100%', backgroundColor: 'blue' }}>
-        <Slider ref={carouselRef} {...settings}>
+      <div style={{ width: '100%', height: windowSize.height, backgroundColor: 'black',position:'relative',paddingTop:slidePadding}}>
+      <Slider  ref={carouselRef} {...settings}>
           {selectedPdfList &&
             selectedPdfList.map((url, index) => (
               <div key={`Page ${index + 1}`}>
@@ -492,8 +545,8 @@ function Presentation(): JSX.Element {
                   style={{
                     width: '100%',
                     height: '100%',
-                    backgroundColor: 'teal',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
+                    position:'relative'
                   }}
                 >
                   <img
@@ -507,13 +560,84 @@ function Presentation(): JSX.Element {
                     style={{
                       width: '100%',
                       height: '100%',
-                      objectFit: 'cover'
+                      objectFit: 'cover',
                     }}
                   />
                 </div>
               </div>
             ))}
         </Slider>
+            <div ref={topCarouselRef} style={{width:'100%',height:'40%',position:'absolute',top:0,left:0,backgroundColor:'tomato',display:'none',alignItems:'center',justifyContent:'space-between'}}>
+            {carouselRef.current&&
+              <><img
+                    ref={topSlideRef[0]}
+                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide-2]}
+                    alt={`Page `}
+                    style={{
+                      width: 100,
+                      height: 180,
+                      objectFit: 'contain'
+                    }}
+                  />
+            <img
+                    ref={topSlideRef[1]}
+                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide-1]}
+                    alt={`Page `}
+                    style={{
+                      width: 100,
+                      height: 180,
+                      objectFit: 'contain'
+                    }}
+                  />
+                  <img
+                  ref={topSlideRef[2]}
+                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide]}
+                    alt={`Page `}
+                    style={{
+                      width: 100,
+                      height: 180,
+                      objectFit: 'contain'
+                    }}
+                  />      
+                  <img
+                  ref={topSlideRef[3]}
+                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide+1]}
+                    alt={`Page `}
+                    style={{
+                      width: 100,
+                      height: 180,
+                      objectFit: 'contain'
+                    }}
+                  />
+                  <img
+                  ref={topSlideRef[4]}
+                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide+2]}
+                    alt={`Page`}
+                    style={{
+                      width: 100,
+                      height: 180,
+                      objectFit: 'contain'
+                    }}
+                  />
+                  </>
+                  }
+                  
+
+            {/* {selectedPdfList &&
+            selectedPdfList.map((url, index) => (
+              
+                  <img
+                  key={`Page ${index + 1}`}
+                    src={url}
+                    alt={`Page ${index + 1}`}
+                    style={{
+                      width: 100,
+                      height: 180,
+                      objectFit: 'contain'
+                    }}
+                  />
+            ))} */}
+            </div>
         <canvas
           ref={gestureRef}
           style={{
