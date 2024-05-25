@@ -180,6 +180,7 @@ function Presentation(): JSX.Element {
     const history: string[] = ['???']
     const SUBSITUTION_COUNT = 5 // 제스처 교체 카운트 기준
     const countMap = new Map()
+    countMap.set('TAB_CONTROL', 0)
     countMap.set('HOLD', 0)
     countMap.set('HOLD_POINTER', 0)
     countMap.set('POINTER', 0)
@@ -190,6 +191,12 @@ function Presentation(): JSX.Element {
     /* 위치, 속도 관련 변수 */
     let last_location: Coordinate = { x: 0, y: 0 }
     const standard_speed = interpolate(window.innerHeight)
+
+    /* 탭 컨트롤 관련 변수 */
+    let tab_start_y: number
+    let tab_ing: boolean = false
+    let tab_state: boolean = false
+    let tab_gauge: number = 0
 
     /* 상단탭 인덱싱 */
     let tb_start_x;
@@ -235,6 +242,7 @@ function Presentation(): JSX.Element {
 
     //받아온 랜드마크정보를 이용하여 손을 그려주는 부분. 이 부분을 커스텀하여 포인터,확대축소 커서등 구현 가능
     const drawLandmarks = (landmarksArray: [], gestureNow: string) => {
+      console.log('drawlandmark')
       const slider = carouselRef.current
       const index = slider.innerSlider.state.currentSlide
       const targetSlide = slideRef[index].current
@@ -252,16 +260,19 @@ function Presentation(): JSX.Element {
       if (landmarksArray.length != 0) {
         let pointer: Coordinate
         if (gestureNow == 'HOLD') {
+          console.log('hold인식')
           pointer = getPointer(landmarksArray, canvas)
-          ctx.fillStyle = 'green'
           if (!holding) {
+            console.log('hold시작')
             //아직 홀드안했을때
             setTimeout(
               () =>
                 targetSlide.dispatchEvent(simulateMouseEvent('mousedown', pointer.x, pointer.y)),
               300
             )
+            holding = true;
           } else {
+            console.log('hold중')
             //홀드중
             targetSlide.dispatchEvent(simulateMouseEvent('mousemove', pointer.x, pointer.y))
           }
@@ -327,10 +338,6 @@ function Presentation(): JSX.Element {
         }
         // 제스처 유지 관련 변수 초기화
         if (gestureNow != 'HOLD') {
-          if(topCarouselRef.current.style.display=='flex'){
-            endDist = getPointer(landmarksArray,canvas).x
-            console.log(startDist-endDist,'@@@@')
-          }
           targetSlide.dispatchEvent(simulateMouseEvent('mouseup'));
           holding = false;
         }
@@ -383,6 +390,7 @@ function Presentation(): JSX.Element {
       history.push(gesture)
       last_location = cur_location
       checkClick(gesture, last_data, landmarks)
+      checkTabControl(gesture, last_data, landmarks)
 
       if(topCarouselRef.current.style.display!='none'){
         const canvas = gestureRef.current
@@ -459,27 +467,37 @@ function Presentation(): JSX.Element {
       const pointer = getPointer(landmarks, canvas)
       const element = document.elementFromPoint(pointer.x, pointer.y)
       if (gesture === 'HOLD' && last_data !== 'HOLD') {
-        holding = true
         hold_start_time = new Date()
       } else if (last_data === 'HOLD' && gesture !== 'HOLD') {
-        holding = false
         const temp = hold_end_time
         hold_end_time = new Date()
 
         /* 클릭 체크 */
         if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 300) {
-          element.dispatchEvent(
-            new MouseEvent('click', {
-              bubbles: true,
-              cancelable: true,
-              clientX: pointer.x,
-              clientY: pointer.y
-            })
-          )
+          if(topCarouselRef.current.style.display=='none'&&pointer.y<window.innerHeight*3/10){
+            topCarouselRef.current.style.display='flex'
+          }
+          else if(topCarouselRef.current.style.display=='flex'&&pointer.y>topCarouselRef.current.offsetHeight){
+            topCarouselRef.current.style.display='none'
+          }
+          else{
+            element.dispatchEvent(
+              new MouseEvent('click', {
+                bubbles: true,
+                cancelable: true,
+                clientX: pointer.x,
+                clientY: pointer.y
+              })
+              
+            )
+            
+
+          }
           is_clicked = true
+
         }
         /* 더블클릭 체크 */
-        if (temp != undefined) {
+        if (temp != undefined && topCarouselRef.current.style.display=='none') {
           if (
             is_clicked &&
             hold_end_time.getTime() - temp.getTime() < 700 &&
@@ -496,6 +514,42 @@ function Presentation(): JSX.Element {
             last_click_time = hold_end_time.getTime()
             is_clicked = false
           }
+        }
+      }
+    }
+
+    const checkTabControl = (gesture, last_data, landmarks) => {
+      const canvas = gestureRef.current
+      if (gesture === 'TAB_CONTROL' && last_data !== 'TAB_CONTROL') {
+        tab_ing = true;
+        tab_start_y = getPointer(landmarks, canvas).y
+      } else if (last_data === 'TAB_CONTROL' && gesture !== 'TAB_CONTROL') {
+        tab_ing = false;
+      }
+
+      if (tab_ing) {
+        const cur_y = getPointer(landmarks, canvas).y
+        const y_range = canvas.offsetHeight * 0.33 // 기준 범위
+        const gauge_max = 100
+
+        // 절댓값을 사용하여 게이지 값 계산
+        const distance = Math.abs(tab_start_y - cur_y)
+        const tab_gauge = Math.min((distance / y_range) * gauge_max, gauge_max).toFixed(0)
+
+        gaugeRef.current.style.height=`${tab_gauge}%`
+        if (cur_y > tab_start_y + y_range && !tab_state) {
+          console.log('상단바 내리기')
+           topCarouselRef.current.style.display = 'flex'
+           topSlideRef.forEach((el, index) => {
+             el.current.src =
+               selectedPdfList[carouselRef.current.innerSlider.state.currentSlide - 2 + index]
+           })
+          tab_state = true
+        }
+        if (cur_y < tab_start_y - y_range && tab_state) {
+          console.log('상단바 올리기')
+          topCarouselRef.current.style.display = 'none'
+          tab_state = false
         }
       }
     }
@@ -526,7 +580,6 @@ function Presentation(): JSX.Element {
     //웹캠 시작시킨 후 initial hand detection
     const startWebcam = async () => {
       try {
-        document.body.style.cursor = 'none'
         const stream = await navigator.mediaDevices.getUserMedia({ video: true })
         console.log(videoRef.current,'@@@비디오 여깅네~')
         videoRef.current.srcObject = stream
@@ -535,6 +588,13 @@ function Presentation(): JSX.Element {
         console.error('Error accessing webcam:', error)
       }
     }
+    const handleImageError = (event) => {
+    if (event.target.src === 'undefined') {
+      event.target.style.display = 'none'; // 이미지 숨기기
+      // 또는 대체 이미지 표시하기
+      // event.target.src = 'default-image.jpg';
+    }
+  };
 
     startWebcam()
     setSlidePadding((windowSize.height-slideRef[0].current.offsetHeight)/2)
@@ -544,7 +604,6 @@ function Presentation(): JSX.Element {
 
     // cleanUp function (component unmount시 실행)
     return () => {
-      document.body.style.cursor = 'default'
       window.removeEventListener('resize', handleWindowSize)
       window.removeEventListener('keypress', handleEsc)
       window.removeEventListener('keydown', slideDirection)
@@ -563,6 +622,7 @@ function Presentation(): JSX.Element {
       }
     }
   }, [])
+  
 
   return (
     <>
@@ -598,7 +658,7 @@ function Presentation(): JSX.Element {
               </div>
             ))}
         </Slider>
-            <div ref={topCarouselRef} style={{width:'100%',height:'40%',position:'absolute',top:0,left:0,backgroundColor:'tomato',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            <div ref={topCarouselRef} style={{width:'100%',height:'40%',position:'absolute',top:0,left:0,backgroundColor:'#f8f8f8',display:'none',alignItems:'center',justifyContent:'space-between'}}>
             {
             carouselRef.current&&
               <><img
@@ -614,7 +674,7 @@ function Presentation(): JSX.Element {
             <img
                     ref={topSlideRef[1]}
                     src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide-1]}
-                    alt={`Page `}
+                    alt={''}
                     style={{
                       width: 100,
                       height: 180,
