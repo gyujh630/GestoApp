@@ -18,6 +18,7 @@ import "slick-carousel/slick/slick-theme.css";
 
 const zoomSrc = 'src/assets/img/zoom2.png'
 const dragSrc = 'src/assets/img/drag_1.png'
+const imgFallBack = 'src/assets/img/blank.png'
 
 
 
@@ -193,7 +194,7 @@ function Presentation(): JSX.Element {
 
     /* 상단탭 인덱싱 */
     let tb_start_x;
-    let tb_index = 5;
+    let tb_index = carousel.innerSlider.state.currentSlide;
     let tb_hold_ing = false;
     let tb_left;
     let tb_right;
@@ -416,7 +417,7 @@ function Presentation(): JSX.Element {
 
               topSlideRef.forEach((el, index) => {
                 el.current.src =
-                  selectedPdfList[tb_index-2+index]
+                  selectedPdfList[tb_index-2+index]?selectedPdfList[tb_index-2+index]:imgFallBack
               })
             }
 
@@ -429,7 +430,7 @@ function Presentation(): JSX.Element {
               console.log(tb_index);
             topSlideRef.forEach((el, index) => {
               el.current.src =
-                selectedPdfList[tb_index-2+index]
+                selectedPdfList[tb_index-2+index]? selectedPdfList[tb_index-2+index]:imgFallBack
             })
             }
           }
@@ -468,9 +469,13 @@ function Presentation(): JSX.Element {
         if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 300) {
           if(topCarouselRef.current.style.display=='none'&&pointer.y<window.innerHeight*3/10){
             topCarouselRef.current.style.display='flex'
+            topCarouselRef.current.style.transform = `translateY(${topCarouselRef.current.offsetHeight}px)`
           }
           else if(topCarouselRef.current.style.display=='flex'&&pointer.y>topCarouselRef.current.offsetHeight){
-            topCarouselRef.current.style.display='none'
+            topCarouselRef.current.style.transform = `translateY(${-topCarouselRef.current.offsetHeight}px)`
+            setTimeout(()=>topCarouselRef.current.style.display='none', 1000)
+            
+           
           }
           else{
             element.dispatchEvent(
@@ -543,14 +548,6 @@ function Presentation(): JSX.Element {
         console.error('Error accessing webcam:', error)
       }
     }
-    const handleImageError = (event) => {
-    if (event.target.src === 'undefined') {
-      event.target.style.display = 'none'; // 이미지 숨기기
-      // 또는 대체 이미지 표시하기
-      // event.target.src = 'default-image.jpg';
-    }
-  };
-
     startWebcam()
     setSlidePadding((windowSize.height-slideRef[0].current.offsetHeight)/2)
     window.addEventListener('resize', handleWindowSize)
@@ -596,7 +593,6 @@ function Presentation(): JSX.Element {
                   }}
                 >
                   <img
-                    className={topCarouselRef.current.style.display=='none'?'a':'a active'}
                     src={url}
                     className="scale_transition"
                     onDoubleClick={(e) => {
@@ -614,7 +610,9 @@ function Presentation(): JSX.Element {
               </div>
             ))}
         </Slider>
-            <div ref={topCarouselRef} style={{width: '100%',height: '40%',position: 'absolute',top: 0,left: 0,
+            <div
+            className='tab_transition'
+            ref={topCarouselRef} style={{width: '100%',height: '40%',position: 'absolute',top:'-40%',left: 0,
   backgroundColor:' #f8f8f8',
   display: 'none',
   alignItems: 'center',
@@ -625,7 +623,7 @@ function Presentation(): JSX.Element {
             carouselRef.current&&
               <><img
                     ref={topSlideRef[0]}
-                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide-2]}
+                    src={imgFallBack}
                     alt={`Page `}
                     style={{
                       width: '19%',
@@ -635,7 +633,7 @@ function Presentation(): JSX.Element {
                   />
             <img
                     ref={topSlideRef[1]}
-                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide-1]}
+                    src={imgFallBack}
                     alt={''}
                     style={{
                       width: '19%',
@@ -651,6 +649,7 @@ function Presentation(): JSX.Element {
                       width: '19%',
                       height: '50%',
                       objectFit: 'cover',
+                      border:'2px solid #3071F2'
                     }}
                   />      
                   <img

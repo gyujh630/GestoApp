@@ -602,6 +602,9 @@ code {
 .scale_transition {
   transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
 }
+.tab_transition {
+  transition: transform 0.4s ease-in-out, opacity 0.3s ease-in-out;
+}
 
 /* 상단 탭 */
 .tab {
