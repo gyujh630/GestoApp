@@ -42,8 +42,6 @@ function Presentation(): JSX.Element {
   const topCarouselRef = useRef(null)
   const topSlideRef = Array.from({ length: 5 }).map(() => useRef())
 
-  const [slidePadding,setSlidePadding] = useState(0);
-
   const zoom = new Image();
   zoom.src = zoomSrc
   const grab = new Image();
@@ -80,7 +78,6 @@ function Presentation(): JSX.Element {
   const 
   handleWindowSize = () => {
     setWindowSize({ width: window.innerWidth, height: window.innerHeight })
-    setSlidePadding((windowSize.height-slideRef[0].current.offsetHeight)/2)
   }
   const handleEsc = (event) => {
     if (event.key === 'Escape') {
@@ -552,7 +549,6 @@ function Presentation(): JSX.Element {
   };
 
     startWebcam()
-    setSlidePadding((windowSize.height-slideRef[0].current.offsetHeight)/2)
     window.addEventListener('resize', handleWindowSize)
     window.addEventListener('keydown', handleEsc)
     window.addEventListener('keydown', slideDirection)
@@ -581,101 +577,133 @@ function Presentation(): JSX.Element {
 
   return (
     <>
-      <video ref={videoRef} autoPlay playsInline style={{ position:'absolute'}}></video>
-      <div style={{ width: '100%', height: windowSize.height, backgroundColor: 'black',position:'relative',paddingTop:slidePadding}}>
-      <Slider  ref={carouselRef} {...settings}>
+      <video ref={videoRef} autoPlay playsInline style={{ position: 'absolute' }}></video>
+      <div
+        style={{
+          width: '100%',
+          height: windowSize.height,
+          backgroundColor: 'black',
+          position: 'relative'
+        }}
+      >
+        <Slider ref={carouselRef} {...settings}>
           {selectedPdfList &&
             selectedPdfList.map((url, index) => (
               <div key={`Page ${index + 1}`}>
                 <div
                   style={{
-                    width: '100%',
-                    height: '100%',
+                    width: window.innerWidth,
+                    height: window.innerHeight,
                     overflow: 'hidden',
-                    position:'relative'
+                    display: 'flex',
+                    alignItems: 'center'
                   }}
                 >
                   <img
-                    className={topCarouselRef.current.style.display=='none'?'a':'a active'}
+                    className={
+                      topCarouselRef.current && topCarouselRef.current.style.display == 'none'
+                        ? 'a'
+                        : 'a active'
+                    }
                     src={url}
-                    className="scale_transition"
                     onDoubleClick={(e) => {
                       zoomWithDblClick(e)
                     }}
                     ref={slideRef[index]}
                     alt={`Page ${index + 1}`}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                    }}
+                    style={
+                      topCarouselRef.current && topCarouselRef.current.style.display == 'flex'
+                        ? {
+                            bottom: 0,
+                            margin: 'auto',
+                            marginBottom: '0',
+                            width: '60%',
+                            height: '60%',
+                            objectFit: 'contain'
+                          }
+                        : {
+                            margin: 'auto',
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain'
+                          }
+                    }
                   />
                 </div>
               </div>
             ))}
         </Slider>
-            <div ref={topCarouselRef} style={{width: '100%',height: '40%',position: 'absolute',top: 0,left: 0,
-  backgroundColor:' #f8f8f8',
-  display: 'none',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingLeft: 20,
-  paddingRight: 20}}>
-            {
-            carouselRef.current&&
-              <><img
-                    ref={topSlideRef[0]}
-                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide-2]}
-                    alt={`Page `}
-                    style={{
-                      width: '19%',
-                      height: '50%',
-                      objectFit: 'cover',
-                    }}
-                  />
-            <img
-                    ref={topSlideRef[1]}
-                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide-1]}
-                    alt={''}
-                    style={{
-                      width: '19%',
-                      height: '50%',
-                      objectFit: 'cover',
-                    }}
-                  />
-                  <img
-                  ref={topSlideRef[2]}
-                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide]}
-                    alt={`Page `}
-                    style={{
-                      width: '19%',
-                      height: '50%',
-                      objectFit: 'cover',
-                    }}
-                  />      
-                  <img
-                  ref={topSlideRef[3]}
-                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide+1]}
-                    alt={`Page `}
-                    style={{
-                      width: '19%',
-                      height: '50%',
-                      objectFit: 'cover',
-                    }}
-                  />
-                  <img
-                  ref={topSlideRef[4]}
-                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide+2]}
-                    alt={`Page`}
-                    style={{
-                      width: '19%',
-                      height: '50%',
-                      objectFit: 'cover',
-                    }}
-                  />
-                  </>
-                  }
-            </div>
+        <div
+          ref={topCarouselRef}
+          style={{
+            width: '100%',
+            height: '40%',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            backgroundColor: ' #f8f8f8',
+            display: 'none',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingLeft: 20,
+            paddingRight: 20
+          }}
+        >
+          {carouselRef.current && (
+            <>
+              <img
+                ref={topSlideRef[0]}
+                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide - 2]}
+                alt={`Page `}
+                style={{
+                  width: '19%',
+                  height: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+              <img
+                ref={topSlideRef[1]}
+                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide - 1]}
+                alt={''}
+                style={{
+                  width: '19%',
+                  height: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+              <img
+                ref={topSlideRef[2]}
+                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide]}
+                alt={`Page `}
+                style={{
+                  width: '19%',
+                  height: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+              <img
+                ref={topSlideRef[3]}
+                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide + 1]}
+                alt={`Page `}
+                style={{
+                  width: '19%',
+                  height: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+              <img
+                ref={topSlideRef[4]}
+                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide + 2]}
+                alt={`Page`}
+                style={{
+                  width: '19%',
+                  height: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+            </>
+          )}
+        </div>
         <canvas
           ref={gestureRef}
           style={{
