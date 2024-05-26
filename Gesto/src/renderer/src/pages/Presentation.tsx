@@ -466,7 +466,7 @@ function Presentation(): JSX.Element {
             topCarouselRef.current.style.display='flex'
             slideRef.forEach((el)=>{
               el.current.style.marginBottom= '0';
-              el.current.style.transform = `scale(0.6) translateY(${(el.current.offsetHeight-el.current.offsetHeight*0.6 -(window.innerHeight-el.current.offsetHeight*0.6-topCarouselRef.current.offsetHeight)-60)}px)`
+              el.current.style.transform = `scale(0.6) translateY(${(el.current.offsetHeight-el.current.offsetHeight*0.6)}px)`
               el.current.style.objectFit= 'contain';
             })
             topCarouselRef.current.style.transform = `translateY(${topCarouselRef.current.offsetHeight}px)`
@@ -661,7 +661,7 @@ function Presentation(): JSX.Element {
               />
               <img
                 ref={topSlideRef[2]}
-                src={selectedPdfList[2]}
+                src={selectedPdfList[0]}
                 alt={`Page `}
                 style={{
                   width: '19%',
@@ -672,7 +672,7 @@ function Presentation(): JSX.Element {
               />
               <img
                 ref={topSlideRef[3]}
-                src={selectedPdfList[3]}
+                src={selectedPdfList[1]}
                 alt={`Page `}
                 style={{
                   width: '19%',
@@ -682,7 +682,7 @@ function Presentation(): JSX.Element {
               />
               <img
                 ref={topSlideRef[4]}
-                src={selectedPdfList[4]}
+                src={selectedPdfList[2]}
                 alt={`Page`}
                 style={{
                   width: '19%',
