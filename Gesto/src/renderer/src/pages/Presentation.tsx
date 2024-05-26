@@ -7,7 +7,9 @@ import {
   getPointer,
   getZoomPointer,
   getZoomDistance,
-  interpolate
+  interpolate,
+  hold_interpolate,
+  getHandArea
 } from '../assets/gestureUtil'
 import Slider from 'react-slick'
 import { useNavigate } from 'react-router-dom'
@@ -233,7 +235,7 @@ function Presentation(): JSX.Element {
 
     //받아온 랜드마크정보를 이용하여 손을 그려주는 부분. 이 부분을 커스텀하여 포인터,확대축소 커서등 구현 가능
     const drawLandmarks = (landmarksArray: [], gestureNow: string) => {
-      console.log('drawlandmark')
+      // console.log('drawlandmark')
       const slider = carouselRef.current
       const index = slider.innerSlider.state.currentSlide
       const targetSlide = slideRef[index].current
