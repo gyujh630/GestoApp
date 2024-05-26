@@ -259,7 +259,7 @@ function Presentation(): JSX.Element {
             setTimeout(
               () =>
                 targetSlide.dispatchEvent(simulateMouseEvent('mousedown', pointer.x, pointer.y)),
-              300
+              200
             )
             holding = true;
           } else {
@@ -463,7 +463,7 @@ function Presentation(): JSX.Element {
         hold_end_time = new Date()
 
         /* 클릭 체크 */
-        if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 300) {
+        if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 200) {
           if(topCarouselRef.current.style.display=='none'&&pointer.y<window.innerHeight*3/10){
             topCarouselRef.current.style.display='flex'
             topCarouselRef.current.style.transform = `translateY(${topCarouselRef.current.offsetHeight}px)`
@@ -537,6 +537,7 @@ function Presentation(): JSX.Element {
     //웹캠 시작시킨 후 initial hand detection
     const startWebcam = async () => {
       try {
+        document.body.style.cursor = 'none'
         const stream = await navigator.mediaDevices.getUserMedia({ video: true })
         console.log(videoRef.current,'@@@비디오 여깅네~')
         videoRef.current.srcObject = stream
@@ -552,6 +553,7 @@ function Presentation(): JSX.Element {
 
     // cleanUp function (component unmount시 실행)
     return () => {
+      document.body.style.cursor = 'default'
       window.removeEventListener('resize', handleWindowSize)
       window.removeEventListener('keypress', handleEsc)
       window.removeEventListener('keydown', slideDirection)
@@ -597,11 +599,6 @@ function Presentation(): JSX.Element {
                   }}
                 >
                   <img
-                    className={
-                      topCarouselRef.current && topCarouselRef.current.style.display == 'none'
-                        ? 'a'
-                        : 'a active'
-                    }
                     src={url}
                     onDoubleClick={(e) => {
                       zoomWithDblClick(e)
@@ -701,71 +698,79 @@ function Presentation(): JSX.Element {
             </>
           )}
         </div>
-            <div
-            className='tab_transition'
-            ref={topCarouselRef} style={{width: '100%',height: '40%',position: 'absolute',top:'-40%',left: 0,
-  backgroundColor:' #f8f8f8',
-  display: 'none',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingLeft: 20,
-  paddingRight: 20}}>
-            {
-            carouselRef.current&&
-              <><img
-                    ref={topSlideRef[0]}
-                    src={imgFallBack}
-                    alt={`Page `}
-                    style={{
-                      width: '19%',
-                      height: '50%',
-                      objectFit: 'cover',
-                    }}
-                  />
-            <img
-                    ref={topSlideRef[1]}
-                    src={imgFallBack}
-                    alt={''}
-                    style={{
-                      width: '19%',
-                      height: '50%',
-                      objectFit: 'cover',
-                    }}
-                  />
-                  <img
-                  ref={topSlideRef[2]}
-                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide]}
-                    alt={`Page `}
-                    style={{
-                      width: '19%',
-                      height: '50%',
-                      objectFit: 'cover',
-                      border:'2px solid #3071F2'
-                    }}
-                  />      
-                  <img
-                  ref={topSlideRef[3]}
-                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide+1]}
-                    alt={`Page `}
-                    style={{
-                      width: '19%',
-                      height: '50%',
-                      objectFit: 'cover',
-                    }}
-                  />
-                  <img
-                  ref={topSlideRef[4]}
-                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide+2]}
-                    alt={`Page`}
-                    style={{
-                      width: '19%',
-                      height: '50%',
-                      objectFit: 'cover',
-                    }}
-                  />
-                  </>
-                  }
-            </div>
+        <div
+          className="tab_transition"
+          ref={topCarouselRef}
+          style={{
+            width: '100%',
+            height: '40%',
+            position: 'absolute',
+            top: '-40%',
+            left: 0,
+            backgroundColor: ' #f8f8f8',
+            display: 'none',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingLeft: 20,
+            paddingRight: 20
+          }}
+        >
+          {carouselRef.current && (
+            <>
+              <img
+                ref={topSlideRef[0]}
+                src={imgFallBack}
+                alt={`Page `}
+                style={{
+                  width: '19%',
+                  height: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+              <img
+                ref={topSlideRef[1]}
+                src={imgFallBack}
+                alt={''}
+                style={{
+                  width: '19%',
+                  height: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+              <img
+                ref={topSlideRef[2]}
+                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide]}
+                alt={`Page `}
+                style={{
+                  width: '19%',
+                  height: '50%',
+                  objectFit: 'cover',
+                  border: '2px solid #3071F2'
+                }}
+              />
+              <img
+                ref={topSlideRef[3]}
+                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide + 1]}
+                alt={`Page `}
+                style={{
+                  width: '19%',
+                  height: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+              <img
+                ref={topSlideRef[4]}
+                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide + 2]}
+                alt={`Page`}
+                style={{
+                  width: '19%',
+                  height: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+            </>
+          )}
+        </div>
         <canvas
           ref={gestureRef}
           style={{
