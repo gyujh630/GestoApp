@@ -464,7 +464,12 @@ function Presentation(): JSX.Element {
         if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 200) {
           if(topCarouselRef.current.style.display=='none'&&pointer.y<window.innerHeight*3/10){
             topCarouselRef.current.style.display='flex'
-            slideRef.forEach((el)=>{
+            tb_index = carousel.innerSlider.state.currentSlide;
+            topSlideRef.forEach((el, index) => {
+              el.current.src =
+                selectedPdfList[tb_index-2+index]? selectedPdfList[tb_index-2+index]:imgFallBack
+            })
+            slideRef.forEach((el ,index)=>{
               el.current.style.marginBottom= '0';
               el.current.style.transform = `scale(0.6) translateY(${(el.current.offsetHeight-el.current.offsetHeight*0.6)}px)`
               el.current.style.objectFit= 'contain';
