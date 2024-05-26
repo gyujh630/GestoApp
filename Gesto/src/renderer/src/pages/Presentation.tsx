@@ -196,7 +196,6 @@ function Presentation(): JSX.Element {
     let tb_left;
     let tb_right;
     const standard = window.innerWidth*8/100
-    console.log('standard: ',standard)
     const maximum = selectedPdfList.length-1;
     
     function preloadImages() {
@@ -233,7 +232,6 @@ function Presentation(): JSX.Element {
 
     //받아온 랜드마크정보를 이용하여 손을 그려주는 부분. 이 부분을 커스텀하여 포인터,확대축소 커서등 구현 가능
     const drawLandmarks = (landmarksArray: [], gestureNow: string) => {
-      console.log('drawlandmark')
       const slider = carouselRef.current
       const index = slider.innerSlider.state.currentSlide
       const targetSlide = slideRef[index].current
@@ -251,10 +249,8 @@ function Presentation(): JSX.Element {
       if (landmarksArray.length != 0) {
         let pointer: Coordinate
         if (gestureNow == 'HOLD') {
-          console.log('hold인식')
           pointer = getPointer(landmarksArray, canvas)
           if (!holding) {
-            console.log('hold시작')
             //아직 홀드안했을때
             setTimeout(
               () =>
@@ -263,7 +259,6 @@ function Presentation(): JSX.Element {
             )
             holding = true;
           } else {
-            console.log('hold중')
             //홀드중
             targetSlide.dispatchEvent(simulateMouseEvent('mousemove', pointer.x, pointer.y))
           }
@@ -281,6 +276,7 @@ function Presentation(): JSX.Element {
         } else if (gestureNow == 'ZOOM_POINTER') {
           pointer = getZoomPointer(landmarksArray, canvas)
           if (loadedImages[zoomSrc]) {
+            ctx.globalAlpha = '0.8'
             ctx.drawImage(loadedImages[zoomSrc], pointer.x, pointer.y,40,40);
           } else {
             console.error('Image not preloaded:', zoomSrc);
@@ -311,6 +307,7 @@ function Presentation(): JSX.Element {
           }
           pointer = initialPoint
           if (loadedImages[zoomSrc]) {
+            ctx.globalAlpha = '0.8'
             ctx.drawImage(loadedImages[zoomSrc], pointer.x, pointer.y,40,40);
           } else {
             console.error('Image not preloaded:', zoomSrc);
@@ -420,11 +417,9 @@ function Presentation(): JSX.Element {
 
           } else {
             if (tb_cur_x > tb_right ) {
-              console.log('우측으로~')
               tb_left += standard;
               tb_right += standard;
               if(tb_index>0)tb_index -= 1;
-              console.log(tb_index);
             topSlideRef.forEach((el, index) => {
               el.current.src =
                 selectedPdfList[tb_index-2+index]? selectedPdfList[tb_index-2+index]:imgFallBack
@@ -466,13 +461,21 @@ function Presentation(): JSX.Element {
         if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 200) {
           if(topCarouselRef.current.style.display=='none'&&pointer.y<window.innerHeight*3/10){
             topCarouselRef.current.style.display='flex'
+            slideRef.forEach((el)=>{
+              el.current.style.marginBottom= '0';
+              el.current.style.transform = `scale(0.6) translateY(${(el.current.offsetHeight-el.current.offsetHeight*0.6 -(window.innerHeight-el.current.offsetHeight*0.6-topCarouselRef.current.offsetHeight)-60)}px)`
+              el.current.style.objectFit= 'contain';
+            })
             topCarouselRef.current.style.transform = `translateY(${topCarouselRef.current.offsetHeight}px)`
           }
           else if(topCarouselRef.current.style.display=='flex'&&pointer.y>topCarouselRef.current.offsetHeight){
+            slideRef.forEach((el)=>{
+              el.current.style.marginBottom =  'auto';
+              el.current.style.transform = `scale(1)`;
+              el.current.style.objectFit= 'contain';
+            })
             topCarouselRef.current.style.transform = `translateY(${-topCarouselRef.current.offsetHeight}px)`
             setTimeout(()=>topCarouselRef.current.style.display='none', 1000)
-            
-           
           }
           else{
             element.dispatchEvent(
@@ -539,7 +542,6 @@ function Presentation(): JSX.Element {
       try {
         document.body.style.cursor = 'none'
         const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-        console.log(videoRef.current,'@@@비디오 여깅네~')
         videoRef.current.srcObject = stream
         await initializeHandDetection()
       } catch (error) {
@@ -557,18 +559,14 @@ function Presentation(): JSX.Element {
       window.removeEventListener('resize', handleWindowSize)
       window.removeEventListener('keypress', handleEsc)
       window.removeEventListener('keydown', slideDirection)
-      console.log(videoRef.current)
       if (videoRef.current) {
         videoRef.current.srcObject.getTracks().forEach((track) => track.stop())
-        console.log('비디오끄기')
       }
       if (handLandmarker) {
         handLandmarker.close()
-        console.log('랜마끄기')
       }
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId)
-        console.log('애니끄기')
       }
     }
   }, [])
@@ -599,23 +597,14 @@ function Presentation(): JSX.Element {
                   }}
                 >
                   <img
+                  className='scale_transition'
                     src={url}
                     onDoubleClick={(e) => {
                       zoomWithDblClick(e)
                     }}
                     ref={slideRef[index]}
                     alt={`Page ${index + 1}`}
-                    style={
-                      topCarouselRef.current && topCarouselRef.current.style.display == 'flex'
-                        ? {
-                            bottom: 0,
-                            margin: 'auto',
-                            marginBottom: '0',
-                            width: '60%',
-                            height: '60%',
-                            objectFit: 'contain'
-                          }
-                        : {
+                    style={{
                             margin: 'auto',
                             width: '100%',
                             height: '100%',
@@ -627,77 +616,6 @@ function Presentation(): JSX.Element {
               </div>
             ))}
         </Slider>
-        <div
-          ref={topCarouselRef}
-          style={{
-            width: '100%',
-            height: '40%',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            backgroundColor: ' #f8f8f8',
-            display: 'none',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingLeft: 20,
-            paddingRight: 20
-          }}
-        >
-          {carouselRef.current && (
-            <>
-              <img
-                ref={topSlideRef[0]}
-                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide - 2]}
-                alt={`Page `}
-                style={{
-                  width: '19%',
-                  height: '50%',
-                  objectFit: 'cover'
-                }}
-              />
-              <img
-                ref={topSlideRef[1]}
-                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide - 1]}
-                alt={''}
-                style={{
-                  width: '19%',
-                  height: '50%',
-                  objectFit: 'cover'
-                }}
-              />
-              <img
-                ref={topSlideRef[2]}
-                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide]}
-                alt={`Page `}
-                style={{
-                  width: '19%',
-                  height: '50%',
-                  objectFit: 'cover'
-                }}
-              />
-              <img
-                ref={topSlideRef[3]}
-                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide + 1]}
-                alt={`Page `}
-                style={{
-                  width: '19%',
-                  height: '50%',
-                  objectFit: 'cover'
-                }}
-              />
-              <img
-                ref={topSlideRef[4]}
-                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide + 2]}
-                alt={`Page`}
-                style={{
-                  width: '19%',
-                  height: '50%',
-                  objectFit: 'cover'
-                }}
-              />
-            </>
-          )}
-        </div>
         <div
           className="tab_transition"
           ref={topCarouselRef}
@@ -712,10 +630,11 @@ function Presentation(): JSX.Element {
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingLeft: 20,
-            paddingRight: 20
+            paddingRight: 20,
+            boxShadow: '0 18px 15px 0px rgba(34, 34, 34, 0.3)'
           }}
         >
-          {carouselRef.current && (
+          { 
             <>
               <img
                 ref={topSlideRef[0]}
@@ -724,7 +643,7 @@ function Presentation(): JSX.Element {
                 style={{
                   width: '19%',
                   height: '50%',
-                  objectFit: 'cover'
+                  objectFit: 'cover',
                 }}
               />
               <img
@@ -739,7 +658,7 @@ function Presentation(): JSX.Element {
               />
               <img
                 ref={topSlideRef[2]}
-                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide]}
+                src={selectedPdfList[2]}
                 alt={`Page `}
                 style={{
                   width: '19%',
@@ -750,7 +669,7 @@ function Presentation(): JSX.Element {
               />
               <img
                 ref={topSlideRef[3]}
-                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide + 1]}
+                src={selectedPdfList[3]}
                 alt={`Page `}
                 style={{
                   width: '19%',
@@ -760,7 +679,7 @@ function Presentation(): JSX.Element {
               />
               <img
                 ref={topSlideRef[4]}
-                src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide + 2]}
+                src={selectedPdfList[4]}
                 alt={`Page`}
                 style={{
                   width: '19%',
@@ -769,7 +688,7 @@ function Presentation(): JSX.Element {
                 }}
               />
             </>
-          )}
+          }
         </div>
         <canvas
           ref={gestureRef}
