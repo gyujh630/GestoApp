@@ -117,7 +117,7 @@ function isFingerStraight(landmarks, fingerNum): boolean {
 }
 
 // 엄지 끝과 특정 손가락 끝이 붙어있는지 판단하는 함수
-function areTipsTouching(landmarks, fingerNum, distance): boolean {
+function areTipsTouching(landmarks, fingerNum): boolean {
   let thumb_tip = landmarks[4]
   let other_tip = landmarks[4 * fingerNum + 4]
 
@@ -132,7 +132,7 @@ function areTipsTouching(landmarks, fingerNum, distance): boolean {
     other_tip[1],
     other_tip[2]
   )
-  if (dist <= distance) {
+  if (dist <= hold_interpolate(landmarks)) {
     return true
   } else return false
 }
@@ -181,7 +181,7 @@ export function getGesture(landmarks): string {
         isFingerFold(first_hand, 2, 20, 45, 0) &&
         areTipsFacing(first_hand, 1))
     ) {
-      if (areTipsTouching(first_hand, 1, 4)) {
+      if (areTipsTouching(first_hand, 1)) {
         return 'HOLD'
       } else if (areTipsTouching(first_hand, 1, 12)) {
         return 'POINTER'
@@ -210,7 +210,7 @@ export function getGesture(landmarks): string {
       isFingerFold(second_hand, 4, 20, 50, 10) &&
       isFingerFold(second_hand, 2, 20, 50, 10)
     ) {
-      if (areTipsTouching(first_hand, 1, 5) && areTipsTouching(second_hand, 1, 5)) {
+      if (areTipsTouching(first_hand, 1) && areTipsTouching(second_hand, 1)) {
         return 'ZOOM'
       } else {
         return 'ZOOM_POINTER'
@@ -229,24 +229,6 @@ export function getPointer(landmarks, canvas): Coordinate {
   const percentY = pointer[1]
   const canvasX = canvas.width * (percentX / 100)
   const canvasY = canvas.height * (1 - percentY / 100)
-  return { x: canvasX, y: canvasY }
-}
-
-// 캔버스에 그려야하는 포인터 좌표를 반환 (HOLD_POINTER)
-export function getHoldPointer(landmarks, canvas): Coordinate {
-  const hand = landmarks[0]
-  const idx_tip = refactorCoordinate(hand[8].x, hand[8].y, hand[8].z)
-  const thumb_tip = refactorCoordinate(hand[4].x, hand[4].y, hand[4].z)
-
-  const sumX = idx_tip[0] + thumb_tip[0]
-  const sumY = idx_tip[1] + thumb_tip[1]
-
-  const centerX = sumX / 2
-  const centerY = sumY / 2
-
-  const canvasX = canvas.width * (centerX / 100)
-  const canvasY = canvas.height * (1 - centerY / 100)
-
   return { x: canvasX, y: canvasY }
 }
 
@@ -294,4 +276,43 @@ export function interpolate(window_size): number {
   const maxVal = 40
 
   return minVal + ((maxVal - minVal) * (window_size - start)) / (end - start)
+}
+
+export function getHandArea(landmarks): number {
+  let left: number = Infinity
+  let right: number = -Infinity
+  let top: number = Infinity
+  let bottom: number = -Infinity
+  let cur_lm_x: number
+  let cur_lm_y: number
+
+  for (let i = 0; i < landmarks.length; i++) {
+    console.log(landmarks)
+    cur_lm_x = landmarks[i].x
+    cur_lm_y = landmarks[i].y
+    left = Math.min(left, cur_lm_x)
+    right = Math.max(right, cur_lm_x)
+    top = Math.min(top, cur_lm_y)
+    bottom = Math.max(bottom, cur_lm_y)
+  }
+  const width = right - left
+  const height = bottom - top
+  const area: number = Number((width * height * 1000).toFixed(0))
+  return area
+}
+
+export function hold_interpolate(landmarks): number {
+  const cur_area: number = getHandArea(landmarks)
+
+  // 기준이 되는 범위 설정
+  const start: number = 5
+  const end: number = 250
+
+  // 기준이 되는 숫자의 범위 설정
+  const minVal = 2
+  const maxVal = 10
+
+  const interpolate_standard = minVal + ((maxVal - minVal) * (cur_area - start)) / (end - start)
+  console.log(interpolate_standard)
+  return interpolate_standard
 }
