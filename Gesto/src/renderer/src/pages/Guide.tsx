@@ -6,6 +6,9 @@ import dragImage from '../assets/img/drag-slide.png'
 import pointerImage from '../assets/img/pointer.png'
 import zpImage from '../assets/img/zoom-pointer.png'
 import zoomImage from '../assets/img/zoom.png'
+import tabImage from '../assets/img/tab-control.png'
+import tabOnImage from '../assets/img/tab-on.png'
+import tabOffImage from '../assets/img/tab-off.png'
 
 function Guide(): JSX.Element {
   const [selectedSection, setSelectedSection] = useState('slide') // 선택된 섹션을 상태로 관리
@@ -52,7 +55,6 @@ function Guide(): JSX.Element {
         </div>
       </div>
       <div className="page-box">
-        {/* 선택된 섹션에 따라 해당하는 내용을 보여줌 */}
         {selectedSection === 'slide' && (
           <div className="guide-section">
             <img className="img-guide" src={holdImage} width="200" alt="" />
@@ -99,6 +101,14 @@ function Guide(): JSX.Element {
         )}
         {selectedSection === 'tabcontrol' && (
           <div className="guide-section">
+            <img className="img-guide" src={tabOnImage} width="400" alt="" />
+            <h3 className="gesture-desc">최상단 영역을 클릭하여 탭을 내릴 수 있습니다.</h3>
+            <img className="img-guide" src={tabImage} width="400" alt="" />
+            <h3 className="gesture-desc">
+              홀드 제스처를 취한 채로 좌우로 움직이면 빠르게 다른 슬라이드로 이동할 수 있습니다.
+            </h3>
+            <img className="img-guide" src={tabOffImage} width="400" alt="" />
+            <h3 className="gesture-desc">하단 영역을 클릭하여 탭을 올릴 수 있습니다.</h3>
           </div>
         )}
       </div>
