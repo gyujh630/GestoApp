@@ -7,9 +7,7 @@ import {
   getPointer,
   getZoomPointer,
   getZoomDistance,
-  interpolate,
-  hold_interpolate,
-  getHandArea
+  interpolate
 } from '../assets/gestureUtil'
 import Slider from 'react-slick'
 import { useNavigate } from 'react-router-dom'
@@ -20,7 +18,6 @@ import "slick-carousel/slick/slick-theme.css";
 
 const zoomSrc = 'src/assets/img/zoom2.png'
 const dragSrc = 'src/assets/img/drag_1.png'
-const imgFallBack = 'src/assets/img/blank.png'
 
 
 
@@ -44,6 +41,8 @@ function Presentation(): JSX.Element {
   const carouselRef = useRef(null)
   const topCarouselRef = useRef(null)
   const topSlideRef = Array.from({ length: 5 }).map(() => useRef())
+
+  const [slidePadding,setSlidePadding] = useState(0);
 
   const zoom = new Image();
   zoom.src = zoomSrc
@@ -81,6 +80,7 @@ function Presentation(): JSX.Element {
   const 
   handleWindowSize = () => {
     setWindowSize({ width: window.innerWidth, height: window.innerHeight })
+    setSlidePadding((windowSize.height-slideRef[0].current.offsetHeight)/2)
   }
   const handleEsc = (event) => {
     if (event.key === 'Escape') {
@@ -180,6 +180,7 @@ function Presentation(): JSX.Element {
     const history: string[] = ['???']
     const SUBSITUTION_COUNT = 5 // 제스처 교체 카운트 기준
     const countMap = new Map()
+    countMap.set('TAB_CONTROL', 0)
     countMap.set('HOLD', 0)
     countMap.set('HOLD_POINTER', 0)
     countMap.set('POINTER', 0)
@@ -191,13 +192,20 @@ function Presentation(): JSX.Element {
     let last_location: Coordinate = { x: 0, y: 0 }
     const standard_speed = interpolate(window.innerHeight)
 
+    /* 탭 컨트롤 관련 변수 */
+    let tab_start_y: number
+    let tab_ing: boolean = false
+    let tab_state: boolean = false
+    let tab_gauge: number = 0
+
     /* 상단탭 인덱싱 */
     let tb_start_x;
-    let tb_index = carousel.innerSlider.state.currentSlide;
+    let tb_index = 5;
     let tb_hold_ing = false;
     let tb_left;
     let tb_right;
     const standard = window.innerWidth*8/100
+    console.log('standard: ',standard)
     const maximum = selectedPdfList.length-1;
     
     function preloadImages() {
@@ -234,6 +242,7 @@ function Presentation(): JSX.Element {
 
     //받아온 랜드마크정보를 이용하여 손을 그려주는 부분. 이 부분을 커스텀하여 포인터,확대축소 커서등 구현 가능
     const drawLandmarks = (landmarksArray: [], gestureNow: string) => {
+      console.log('drawlandmark')
       const slider = carouselRef.current
       const index = slider.innerSlider.state.currentSlide
       const targetSlide = slideRef[index].current
@@ -251,16 +260,19 @@ function Presentation(): JSX.Element {
       if (landmarksArray.length != 0) {
         let pointer: Coordinate
         if (gestureNow == 'HOLD') {
+          console.log('hold인식')
           pointer = getPointer(landmarksArray, canvas)
           if (!holding) {
+            console.log('hold시작')
             //아직 홀드안했을때
             setTimeout(
               () =>
                 targetSlide.dispatchEvent(simulateMouseEvent('mousedown', pointer.x, pointer.y)),
-              200
+              300
             )
             holding = true;
           } else {
+            console.log('hold중')
             //홀드중
             targetSlide.dispatchEvent(simulateMouseEvent('mousemove', pointer.x, pointer.y))
           }
@@ -278,7 +290,6 @@ function Presentation(): JSX.Element {
         } else if (gestureNow == 'ZOOM_POINTER') {
           pointer = getZoomPointer(landmarksArray, canvas)
           if (loadedImages[zoomSrc]) {
-            ctx.globalAlpha = '0.8'
             ctx.drawImage(loadedImages[zoomSrc], pointer.x, pointer.y,40,40);
           } else {
             console.error('Image not preloaded:', zoomSrc);
@@ -309,7 +320,6 @@ function Presentation(): JSX.Element {
           }
           pointer = initialPoint
           if (loadedImages[zoomSrc]) {
-            ctx.globalAlpha = '0.8'
             ctx.drawImage(loadedImages[zoomSrc], pointer.x, pointer.y,40,40);
           } else {
             console.error('Image not preloaded:', zoomSrc);
@@ -380,6 +390,7 @@ function Presentation(): JSX.Element {
       history.push(gesture)
       last_location = cur_location
       checkClick(gesture, last_data, landmarks)
+      checkTabControl(gesture, last_data, landmarks)
 
       if(topCarouselRef.current.style.display!='none'){
         const canvas = gestureRef.current
@@ -413,18 +424,20 @@ function Presentation(): JSX.Element {
 
               topSlideRef.forEach((el, index) => {
                 el.current.src =
-                  selectedPdfList[tb_index-2+index]?selectedPdfList[tb_index-2+index]:imgFallBack
+                  selectedPdfList[tb_index-2+index]
               })
             }
 
           } else {
             if (tb_cur_x > tb_right ) {
+              console.log('우측으로~')
               tb_left += standard;
               tb_right += standard;
               if(tb_index>0)tb_index -= 1;
+              console.log(tb_index);
             topSlideRef.forEach((el, index) => {
               el.current.src =
-                selectedPdfList[tb_index-2+index]? selectedPdfList[tb_index-2+index]:imgFallBack
+                selectedPdfList[tb_index-2+index]
             })
             }
           }
@@ -460,29 +473,12 @@ function Presentation(): JSX.Element {
         hold_end_time = new Date()
 
         /* 클릭 체크 */
-        if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 200) {
+        if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 300) {
           if(topCarouselRef.current.style.display=='none'&&pointer.y<window.innerHeight*3/10){
             topCarouselRef.current.style.display='flex'
-            tb_index = carousel.innerSlider.state.currentSlide;
-            topSlideRef.forEach((el, index) => {
-              el.current.src =
-                selectedPdfList[tb_index-2+index]? selectedPdfList[tb_index-2+index]:imgFallBack
-            })
-            slideRef.forEach((el ,index)=>{
-              el.current.style.marginBottom= '0';
-              el.current.style.transform = `scale(0.6) translateY(${(el.current.offsetHeight-el.current.offsetHeight*0.6)}px)`
-              el.current.style.objectFit= 'contain';
-            })
-            topCarouselRef.current.style.transform = `translateY(${topCarouselRef.current.offsetHeight}px)`
           }
           else if(topCarouselRef.current.style.display=='flex'&&pointer.y>topCarouselRef.current.offsetHeight){
-            slideRef.forEach((el)=>{
-              el.current.style.marginBottom =  'auto';
-              el.current.style.transform = `scale(1)`;
-              el.current.style.objectFit= 'contain';
-            })
-            topCarouselRef.current.style.transform = `translateY(${-topCarouselRef.current.offsetHeight}px)`
-            setTimeout(()=>topCarouselRef.current.style.display='none', 1000)
+            topCarouselRef.current.style.display='none'
           }
           else{
             element.dispatchEvent(
@@ -521,6 +517,43 @@ function Presentation(): JSX.Element {
         }
       }
     }
+
+    const checkTabControl = (gesture, last_data, landmarks) => {
+      const canvas = gestureRef.current
+      if (gesture === 'TAB_CONTROL' && last_data !== 'TAB_CONTROL') {
+        tab_ing = true;
+        tab_start_y = getPointer(landmarks, canvas).y
+      } else if (last_data === 'TAB_CONTROL' && gesture !== 'TAB_CONTROL') {
+        tab_ing = false;
+      }
+
+      if (tab_ing) {
+        const cur_y = getPointer(landmarks, canvas).y
+        const y_range = canvas.offsetHeight * 0.33 // 기준 범위
+        const gauge_max = 100
+
+        // 절댓값을 사용하여 게이지 값 계산
+        const distance = Math.abs(tab_start_y - cur_y)
+        const tab_gauge = Math.min((distance / y_range) * gauge_max, gauge_max).toFixed(0)
+
+        gaugeRef.current.style.height=`${tab_gauge}%`
+        if (cur_y > tab_start_y + y_range && !tab_state) {
+          console.log('상단바 내리기')
+           topCarouselRef.current.style.display = 'flex'
+           topSlideRef.forEach((el, index) => {
+             el.current.src =
+               selectedPdfList[carouselRef.current.innerSlider.state.currentSlide - 2 + index]
+           })
+          tab_state = true
+        }
+        if (cur_y < tab_start_y - y_range && tab_state) {
+          console.log('상단바 올리기')
+          topCarouselRef.current.style.display = 'none'
+          tab_state = false
+        }
+      }
+    }
+
     //비디오에서 손 감지
     const detectHands = (): void => {
       if (videoRef.current && videoRef.current.readyState >= 2) {
@@ -547,33 +580,45 @@ function Presentation(): JSX.Element {
     //웹캠 시작시킨 후 initial hand detection
     const startWebcam = async () => {
       try {
-        document.body.style.cursor = 'none'
         const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+        console.log(videoRef.current,'@@@비디오 여깅네~')
         videoRef.current.srcObject = stream
         await initializeHandDetection()
       } catch (error) {
         console.error('Error accessing webcam:', error)
       }
     }
+    const handleImageError = (event) => {
+    if (event.target.src === 'undefined') {
+      event.target.style.display = 'none'; // 이미지 숨기기
+      // 또는 대체 이미지 표시하기
+      // event.target.src = 'default-image.jpg';
+    }
+  };
+
     startWebcam()
+    setSlidePadding((windowSize.height-slideRef[0].current.offsetHeight)/2)
     window.addEventListener('resize', handleWindowSize)
     window.addEventListener('keydown', handleEsc)
     window.addEventListener('keydown', slideDirection)
 
     // cleanUp function (component unmount시 실행)
     return () => {
-      document.body.style.cursor = 'default'
       window.removeEventListener('resize', handleWindowSize)
       window.removeEventListener('keypress', handleEsc)
       window.removeEventListener('keydown', slideDirection)
+      console.log(videoRef.current)
       if (videoRef.current) {
         videoRef.current.srcObject.getTracks().forEach((track) => track.stop())
+        console.log('비디오끄기')
       }
       if (handLandmarker) {
         handLandmarker.close()
+        console.log('랜마끄기')
       }
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId)
+        console.log('애니끄기')
       }
     }
   }, [])
@@ -581,122 +626,94 @@ function Presentation(): JSX.Element {
 
   return (
     <>
-      <video ref={videoRef} autoPlay playsInline style={{ position: 'absolute' }}></video>
-      <div
-        style={{
-          width: '100%',
-          height: windowSize.height,
-          backgroundColor: 'black',
-          position: 'relative'
-        }}
-      >
-        <Slider ref={carouselRef} {...settings}>
+      <video ref={videoRef} autoPlay playsInline style={{ position:'absolute'}}></video>
+      <div style={{ width: '100%', height: windowSize.height, backgroundColor: 'black',position:'relative',paddingTop:slidePadding}}>
+      <Slider  ref={carouselRef} {...settings}>
           {selectedPdfList &&
             selectedPdfList.map((url, index) => (
               <div key={`Page ${index + 1}`}>
                 <div
                   style={{
-                    width: window.innerWidth,
-                    height: window.innerHeight,
+                    width: '100%',
+                    height: '100%',
                     overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center'
+                    position:'relative'
                   }}
                 >
                   <img
-                  className='scale_transition'
                     src={url}
+                    className="scale_transition"
                     onDoubleClick={(e) => {
                       zoomWithDblClick(e)
                     }}
                     ref={slideRef[index]}
                     alt={`Page ${index + 1}`}
                     style={{
-                            margin: 'auto',
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain'
-                          }
-                    }
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
                   />
                 </div>
               </div>
             ))}
         </Slider>
-        <div
-          className="tab_transition"
-          ref={topCarouselRef}
-          style={{
-            width: '100%',
-            height: '40%',
-            position: 'absolute',
-            top: '-40%',
-            left: 0,
-            backgroundColor: ' #f8f8f8',
-            display: 'none',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingLeft: 20,
-            paddingRight: 20,
-            boxShadow: '0 18px 15px 0px rgba(34, 34, 34, 0.3)'
-          }}
-        >
-          { 
-            <>
-              <img
-                ref={topSlideRef[0]}
-                src={imgFallBack}
-                alt={`Page `}
-                style={{
-                  width: '19%',
-                  height: '50%',
-                  objectFit: 'cover',
-                }}
-              />
-              <img
-                ref={topSlideRef[1]}
-                src={imgFallBack}
-                alt={''}
-                style={{
-                  width: '19%',
-                  height: '50%',
-                  objectFit: 'cover'
-                }}
-              />
-              <img
-                ref={topSlideRef[2]}
-                src={selectedPdfList[0]}
-                alt={`Page `}
-                style={{
-                  width: '19%',
-                  height: '50%',
-                  objectFit: 'cover',
-                  border: '2px solid #3071F2'
-                }}
-              />
-              <img
-                ref={topSlideRef[3]}
-                src={selectedPdfList[1]}
-                alt={`Page `}
-                style={{
-                  width: '19%',
-                  height: '50%',
-                  objectFit: 'cover'
-                }}
-              />
-              <img
-                ref={topSlideRef[4]}
-                src={selectedPdfList[2]}
-                alt={`Page`}
-                style={{
-                  width: '19%',
-                  height: '50%',
-                  objectFit: 'cover'
-                }}
-              />
-            </>
-          }
-        </div>
+            <div ref={topCarouselRef} style={{width:'100%',height:'40%',position:'absolute',top:0,left:0,backgroundColor:'#f8f8f8',display:'none',alignItems:'center',justifyContent:'space-between'}}>
+            {
+            carouselRef.current&&
+              <><img
+                    ref={topSlideRef[0]}
+                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide-2]}
+                    alt={`Page `}
+                    style={{
+                      width: 100,
+                      height: 180,
+                      objectFit: 'contain'
+                    }}
+                  />
+            <img
+                    ref={topSlideRef[1]}
+                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide-1]}
+                    alt={''}
+                    style={{
+                      width: 100,
+                      height: 180,
+                      objectFit: 'contain'
+                    }}
+                  />
+                  <img
+                  ref={topSlideRef[2]}
+                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide]}
+                    alt={`Page `}
+                    style={{
+                      width: 100,
+                      height: 180,
+                      objectFit: 'contain'
+                    }}
+                  />      
+                  <img
+                  ref={topSlideRef[3]}
+                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide+1]}
+                    alt={`Page `}
+                    style={{
+                      width: 100,
+                      height: 180,
+                      objectFit: 'contain'
+                    }}
+                  />
+                  <img
+                  ref={topSlideRef[4]}
+                    src={selectedPdfList[carouselRef.current.innerSlider.state.currentSlide+2]}
+                    alt={`Page`}
+                    style={{
+                      width: 100,
+                      height: 180,
+                      objectFit: 'contain'
+                    }}
+                  />
+                  </>
+                  }
+            </div>
         <canvas
           ref={gestureRef}
           style={{

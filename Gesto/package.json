@@ -25,10 +25,14 @@
     "@electron-toolkit/utils": "^3.0.0",
     "@mediapipe/tasks-vision": "^0.10.13",
     "electron-updater": "^6.1.7",
+    "path-browserify": "^1.0.1",
     "pdfjs-dist": "^4.1.392",
     "react-router-dom": "^6.23.0",
     "react-slick": "^0.30.2",
+    "react-spinners": "^0.13.8",
     "slick-carousel": "^1.8.1",
+    "vite-plugin-electron-renderer": "^0.14.5",
+    "vite-plugin-resolve": "^2.5.1",
     "vite-plugin-top-level-await": "^1.4.1",
     "zustand": "^4.5.2"
   },
@@ -49,6 +53,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "typescript": "^5.3.3",
-    "vite": "^5.0.12"
+    "vite": "^5.0.12",
+    "vite-plugin-node-polyfills": "^0.21.0",
+    "vite-tsconfig-paths": "^4.3.2"
   }
 }

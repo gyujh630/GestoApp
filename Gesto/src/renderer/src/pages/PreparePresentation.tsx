@@ -1,71 +1,97 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import useStore from "@renderer/store/store";
-import { useNavigate } from "react-router-dom";
-
+import { useCallback, useEffect, useState } from 'react'
+import useStore from '@renderer/store/store'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { SyncLoader } from 'react-spinners'
 
 function PreparePresentation(): JSX.Element {
+  const selectedPdf = useStore((state) => state.selectedPdf)
+  const selectedPdfList = useStore((state) => state.selectedPdfList)
+  const setSelectedPdfList = useStore((state) => state.setSelectedPdfList)
+  // const topBarState = useStore((state) => state.topBarState)
+  const setTopBarState = useStore((state) => state.setTopBarState)
 
-    const selectedPdf = useStore((state) => state.selectedPdf);
-    const selectedPdfList = useStore((state) => state.selectedPdfList)
-    const setSelectedPdfList = useStore((state) => state.setSelectedPdfList)
-    
-    // const [imageList,setImageList] = useState([]);
-    const [selectedPage,setSelectedPage] = useState(0);
+  const [selectedPage, setSelectedPage] = useState(0)
+  const { state } = useLocation();
 
-    const navigate = useNavigate();
+  const [loading, setLoading] = useState(state &&state.new?true:false)
 
-    const renderEachPage = useCallback(
-        async( pdf = selectedPdf) => {
-          if(pdf){
-            const imagesList = [];
-            const canvas = document.createElement("canvas");
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                var viewport = page.getViewport({ scale: 1 });
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-                var render_context = {
-                  canvasContext: canvas.getContext("2d"),
-                  viewport: viewport,
-                };
-                await page.render(render_context).promise;
-                let img = canvas.toDataURL("image/png");
-                imagesList.push(img);
-            }    
-            setSelectedPdfList(imagesList);
+  const navigate = useNavigate()
 
-
+  const renderEachPage = useCallback(
+    async (pdf = selectedPdf) => {
+      if (pdf) {
+        const imagesList: Array<string> = []
+        const canvas = document.createElement('canvas')
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i)
+          const viewport = page.getViewport({ scale: 2.5 })
+          canvas.height = viewport.height
+          canvas.width = viewport.width
+          const render_context = {
+            canvasContext: canvas.getContext('2d'),
+            viewport: viewport
           }
-        },
-        [selectedPdf]
-      );
-    useEffect(()=>{
-        renderEachPage(selectedPdf)
-        
-    },[selectedPdf])
-  return (
+          await page.render(render_context).promise
+          const img = canvas.toDataURL('image/png')
+          imagesList.push(img)
+        }
+        setSelectedPdfList(imagesList)
+        setLoading(false) // 로딩 완료
+        setTopBarState(true)
+      }
+    },
+    [selectedPdf, setSelectedPdfList]
+  )
+
+  useEffect(() => {
+    if(state&& state.new){
+      renderEachPage(selectedPdf)
+    }
+    else{
+      setLoading(false)
+      setTopBarState(true)
+    }
+    
+  }, [selectedPdf, renderEachPage])
+
+  if (loading) {
+    return (
+      <div className="load-box">
+        <SyncLoader color={'#3071F2'} loading={loading} size={20} />
+        <span className="load-txt">파일을 변환하고 있어요!</span>
+      </div>
+    )
+  }
+
+  return loading ? (
+    <div className="load-box">
+      <SyncLoader color={'#3071F2'} loading={loading} size={20} />
+      <span className="load-txt">파일을 변환하고 있어요!</span>
+    </div>
+  ) : (
     <>
-    <div className="presentation_left ">
-        {selectedPdfList&&
-        selectedPdfList.map((url, index)=>(
-            <div onClick={()=>setSelectedPage(index)}
-             key={`Page ${index + 1}`}
-             style={{width:'100%',borderColor:'red'}}>
-                <img src={url}
-          alt={`Page ${index + 1}`}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-          }}/>
+      <div className="presentation_left">
+        {selectedPdfList &&
+          selectedPdfList.map((url, index) => (
+            <div key={`Page ${index + 1}`}>
+              <div onClick={() => setSelectedPage(index)}>
+                <div className={index == selectedPage ? 'left-img-box active' : 'left-img-box'}>
+                  <img className="img-pages" src={url} alt={`Page ${index + 1}`} />
+                </div>
+              </div>
+              <div className="page-index">{index + 1}</div>
             </div>
-        ))}
-    </div>
-    <div className="presentation_right">
-        <div onClick={()=>navigate('/Presentation')} style={{width:'100%'}}>
-            <img style={{width:'100%',objectFit:'cover'}} src={selectedPdfList[selectedPage]}/>
+          ))}
+      </div>
+      <div className="presentation_right">
+        <div>
+          <img
+            id="img-selected"
+            src={selectedPdfList[selectedPage]}
+            alt={`Selected Page ${selectedPage + 1}`}
+          />
         </div>
-    </div>
+      </div>
     </>
   )
 }
