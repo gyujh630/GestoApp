@@ -58,10 +58,10 @@ function Guide(): JSX.Element {
         {selectedSection === 'slide' && (
           <div className="guide-section">
             <img className="img-guide" src={holdImage} width="200" alt="" />
-            <h3 className="gesture-desc">화면 앞에서 손을 위 모양처럼 만듭니다.</h3>
+            <h3 className="gesture-desc">화면 앞에서 손을 위 모양처럼 만듭니다. (Pinch)</h3>
             <img className="img-guide" src={dragImage} width="400" />
             <h3 className="gesture-desc">
-              홀드 제스처를 유지한 채로 손을 좌우로 움직여 슬라이드를 넘길 수 있습니다.
+              Pinch 제스처를 유지한 채로 손을 좌우로 움직여 슬라이드를 넘길 수 있습니다.
             </h3>
           </div>
         )}
@@ -105,7 +105,7 @@ function Guide(): JSX.Element {
             <h3 className="gesture-desc">최상단 영역을 클릭하여 탭을 내릴 수 있습니다.</h3>
             <img className="img-guide" src={tabImage} width="400" alt="" />
             <h3 className="gesture-desc">
-              홀드 제스처를 취한 채로 좌우로 움직이면 빠르게 다른 슬라이드로 이동할 수 있습니다.
+              Pinch 제스처를 취한 채로 좌우로 움직이면 빠르게 다른 슬라이드로 이동할 수 있습니다.
             </h3>
             <img className="img-guide" src={tabOffImage} width="400" alt="" />
             <h3 className="gesture-desc">하단 영역을 클릭하여 탭을 올릴 수 있습니다.</h3>

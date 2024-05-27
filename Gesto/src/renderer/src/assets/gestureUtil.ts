@@ -117,7 +117,7 @@ function isFingerStraight(landmarks, fingerNum): boolean {
 }
 
 // 엄지 끝과 특정 손가락 끝이 붙어있는지 판단하는 함수
-function areTipsTouching(landmarks, fingerNum): boolean {
+function areTipsTouching(landmarks, fingerNum, distance): boolean {
   let thumb_tip = landmarks[4]
   let other_tip = landmarks[4 * fingerNum + 4]
 
@@ -132,7 +132,7 @@ function areTipsTouching(landmarks, fingerNum): boolean {
     other_tip[1],
     other_tip[2]
   )
-  if (dist <= hold_interpolate(landmarks)) {
+  if (dist <= distance) {
     return true
   } else return false
 }
@@ -181,9 +181,9 @@ export function getGesture(landmarks): string {
         isFingerFold(first_hand, 2, 20, 45, 0) &&
         areTipsFacing(first_hand, 1))
     ) {
-      if (areTipsTouching(first_hand, 1)) {
+      if (areTipsTouching(first_hand, 1, 6)) {
         return 'HOLD'
-      } else if (areTipsTouching(first_hand, 1, 12)) {
+      } else if (areTipsTouching(first_hand, 1, 13)) {
         return 'POINTER'
       }
     }
@@ -210,7 +210,7 @@ export function getGesture(landmarks): string {
       isFingerFold(second_hand, 4, 20, 50, 10) &&
       isFingerFold(second_hand, 2, 20, 50, 10)
     ) {
-      if (areTipsTouching(first_hand, 1) && areTipsTouching(second_hand, 1)) {
+      if (areTipsTouching(first_hand, 1, 6) && areTipsTouching(second_hand, 1, 6)) {
         return 'ZOOM'
       } else {
         return 'ZOOM_POINTER'
@@ -287,7 +287,6 @@ export function getHandArea(landmarks): number {
   let cur_lm_y: number
 
   for (let i = 0; i < landmarks.length; i++) {
-    console.log(landmarks)
     cur_lm_x = landmarks[i].x
     cur_lm_y = landmarks[i].y
     left = Math.min(left, cur_lm_x)
@@ -313,6 +312,5 @@ export function hold_interpolate(landmarks): number {
   const maxVal = 10
 
   const interpolate_standard = minVal + ((maxVal - minVal) * (cur_area - start)) / (end - start)
-  console.log(interpolate_standard)
   return interpolate_standard
 }
