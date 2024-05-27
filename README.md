@@ -6,7 +6,6 @@
   - [Technologies](#technologies)
 - [[2] Getting Started](#2-getting-started)
   - [Prerequisites](#prerequisites)
-- [[3] Contact](#6-contact)
 
 
 # [1] About the Project
@@ -49,7 +48,3 @@ cd Gesto
 npm install
 npm run dev
 ```
-
-# [3] Contact
-- 📧 tmdwn0705@ajou.ac.kr
-- 📧 rbwjrbxo@ajou.ac.kr
