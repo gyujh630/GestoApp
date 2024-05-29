@@ -23,6 +23,8 @@ function createWindow(): void {
     mainWindow.show()
   })
 
+  mainWindow.setFullScreen(true)
+
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }

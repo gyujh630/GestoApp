@@ -181,7 +181,7 @@ export function getGesture(landmarks): string {
         isFingerFold(first_hand, 2, 20, 45, 0) &&
         areTipsFacing(first_hand, 1))
     ) {
-      if (areTipsTouching(first_hand, 1, 6)) {
+      if (areTipsTouching(first_hand, 1, 5)) {
         return 'HOLD'
       } else if (areTipsTouching(first_hand, 1, 13)) {
         return 'POINTER'
@@ -210,7 +210,7 @@ export function getGesture(landmarks): string {
       isFingerFold(second_hand, 4, 20, 50, 10) &&
       isFingerFold(second_hand, 2, 20, 50, 10)
     ) {
-      if (areTipsTouching(first_hand, 1, 6) && areTipsTouching(second_hand, 1, 6)) {
+      if (areTipsTouching(first_hand, 1, 5) && areTipsTouching(second_hand, 1, 5)) {
         return 'ZOOM'
       } else {
         return 'ZOOM_POINTER'
