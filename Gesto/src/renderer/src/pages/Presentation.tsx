@@ -536,7 +536,9 @@ function Presentation(): JSX.Element {
           const ctx = canvas.getContext('2d')
           ctx.clearRect(0, 0, canvas.width, canvas.height)
           //손 사라질시 제스처 유지 관련 변수 초기화
-          // targetSlide.dispatchEvent(simulateMouseEvent('mouseup'))
+          if(history[history.length - 1]=="HOLD"){
+              targetSlide.dispatchEvent(simulateMouseEvent('mouseup'))
+          }
           zoom_ing = false
         }
       }
