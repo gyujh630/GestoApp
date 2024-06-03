@@ -13,17 +13,12 @@ import {
 } from '../assets/gestureUtil'
 import Slider from 'react-slick'
 import { useNavigate } from 'react-router-dom'
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-
-
+import 'slick-carousel/slick/slick.css'
+import 'slick-carousel/slick/slick-theme.css'
 
 const zoomSrc = 'src/assets/img/zoom2.png'
 const dragSrc = 'src/assets/img/drag_1.png'
 const imgFallBack = 'src/assets/img/blank.png'
-
-
-
 
 export interface Coordinate {
   x: number
@@ -45,12 +40,12 @@ function Presentation(): JSX.Element {
   const topCarouselRef = useRef(null)
   const topSlideRef = Array.from({ length: 5 }).map(() => useRef())
 
-  const zoom = new Image();
+  const zoom = new Image()
   zoom.src = zoomSrc
-  const grab = new Image();
+  const grab = new Image()
   grab.src = dragSrc
-  const images = [zoomSrc,dragSrc];
-  const loadedImages = {};
+  const images = [zoomSrc, dragSrc]
+  const loadedImages = {}
 
   const settings = {
     dots: false,
@@ -58,7 +53,7 @@ function Presentation(): JSX.Element {
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
-    arrows: false,
+    arrows: false
   }
 
   const [windowSize, setWindowSize] = useState({
@@ -78,8 +73,7 @@ function Presentation(): JSX.Element {
     return event
   }
 
-  const 
-  handleWindowSize = () => {
+  const handleWindowSize = () => {
     setWindowSize({ width: window.innerWidth, height: window.innerHeight })
   }
   const handleEsc = (event) => {
@@ -110,8 +104,7 @@ function Presentation(): JSX.Element {
     [selectedPdf]
   )
 
-  let slideDistTop;
-  
+  let slideDistTop
 
   const zoomWithDblClick = (e) => {
     const INITIAL_SCALE = 1
@@ -192,24 +185,22 @@ function Presentation(): JSX.Element {
     const standard_speed = interpolate(window.innerHeight)
 
     /* 상단탭 인덱싱 */
-    let tb_start_x;
-    let tb_index = carousel.innerSlider.state.currentSlide;
-    let tb_hold_ing = false;
-    let tb_left;
-    let tb_right;
-    const standard = window.innerWidth*8/100
-    const maximum = selectedPdfList.length-1;
-    
+    let tb_start_x
+    let tb_index = carousel.innerSlider.state.currentSlide
+    let tb_hold_ing = false
+    let tb_left
+    let tb_right
+    const standard = (window.innerWidth * 8) / 100
+    const maximum = selectedPdfList.length - 1
+
     function preloadImages() {
       for (let i = 0; i < images.length; i++) {
-        const img = new Image();
-        img.src = images[i];
-        loadedImages[images[i]] = img;
+        const img = new Image()
+        img.src = images[i]
+        loadedImages[images[i]] = img
       }
     }
-    preloadImages();
-    
-
+    preloadImages()
 
     const initializeHandDetection = async () => {
       try {
@@ -237,12 +228,12 @@ function Presentation(): JSX.Element {
       const slider = carouselRef.current
       const index = slider.innerSlider.state.currentSlide
       const targetSlide = slideRef[index].current
-      const canvas = gestureRef.current;
-      let startDist = 0;
-      let endDist = 0;
+      const canvas = gestureRef.current
+      let startDist = 0
+      let endDist = 0
       if (canvas) {
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
+        canvas.width = canvas.offsetWidth
+        canvas.height = canvas.offsetHeight
       }
       const ctx = canvas.getContext('2d')
       ctx.globalAlpha = '0.6'
@@ -254,21 +245,21 @@ function Presentation(): JSX.Element {
           pointer = getPointer(landmarksArray, canvas)
           if (!holding) {
             //아직 홀드안했을때
-            setTimeout(
-              () =>
-                targetSlide.dispatchEvent(simulateMouseEvent('mousedown', pointer.x, pointer.y)),
-              200
-            )
-            holding = true;
+            targetSlide.dispatchEvent(simulateMouseEvent('mousedown', pointer.x, pointer.y))
+            holding = true
           } else {
             //홀드중
-            targetSlide.dispatchEvent(simulateMouseEvent('mousemove', pointer.x, pointer.y))
+            setTimeout(
+              () =>
+                targetSlide.dispatchEvent(simulateMouseEvent('mousemove', pointer.x, pointer.y)),
+              120
+            )
           }
           if (loadedImages[dragSrc]) {
-            ctx.drawImage(loadedImages[dragSrc], pointer.x, pointer.y,40,40);
+            ctx.drawImage(loadedImages[dragSrc], pointer.x, pointer.y, 40, 40)
           } else {
-            console.error('Image not preloaded:', dragSrc);
-          }  
+            console.error('Image not preloaded:', dragSrc)
+          }
         } else if (gestureNow == 'POINTER' || gestureNow == 'TAB_CONTROL') {
           pointer = getPointer(landmarksArray, canvas)
           ctx.fillStyle = 'blue'
@@ -279,13 +270,13 @@ function Presentation(): JSX.Element {
           pointer = getZoomPointer(landmarksArray, canvas)
           if (loadedImages[zoomSrc]) {
             ctx.globalAlpha = '0.8'
-            ctx.drawImage(loadedImages[zoomSrc], pointer.x, pointer.y,40,40);
+            ctx.drawImage(loadedImages[zoomSrc], pointer.x, pointer.y, 40, 40)
           } else {
-            console.error('Image not preloaded:', zoomSrc);
-          }  
+            console.error('Image not preloaded:', zoomSrc)
+          }
         } else if (gestureNow == 'ZOOM') {
-          let x, y;
-          let prev_rate;
+          let x, y
+          let prev_rate
           if (zoom_ing == false) {
             zoom_ing = true
             zoom_start_dist = getZoomDistance(landmarksArray)
@@ -299,21 +290,20 @@ function Presentation(): JSX.Element {
 
           if (zoom_ing) {
             // 줌 동작 진행 중
-            let delta = 0.05 // 변화율
+            let delta = 0.03 // 변화율
             const zoom_cur_dist = getZoomDistance(landmarksArray)
             //0~300정도의 사이값 나오는 배율 값
             let new_zoom_rate = parseInt(((zoom_cur_dist / zoom_start_dist) * 100).toFixed(0))
             zoom_rate = zoom_rate + (new_zoom_rate - prev_zoom_rate) * delta
             zoom_rate = Math.max(MIN_ZOOM_RATE, Math.min(zoom_rate, MAX_ZOOM_RATE))
-            
           }
           pointer = initialPoint
           if (loadedImages[zoomSrc]) {
             ctx.globalAlpha = '0.8'
-            ctx.drawImage(loadedImages[zoomSrc], pointer.x, pointer.y,40,40);
+            ctx.drawImage(loadedImages[zoomSrc], pointer.x, pointer.y, 40, 40)
           } else {
-            console.error('Image not preloaded:', zoomSrc);
-          }  
+            console.error('Image not preloaded:', zoomSrc)
+          }
 
           //초점 변화 계산식
           x = prevInitialPoint.x - (initialPoint.x * zoom_rate) / prev_rate
@@ -322,31 +312,30 @@ function Presentation(): JSX.Element {
           //슬라이드 영역 외의 범위는 확대 축소 안되게 범위 조절 필요
           // initialpPoint slide top~ slide top+height안에 있을때만
           if (initialPoint.y > distTop && initialPoint.y < targetSlide.offsetHeight + distTop) {
-            targetSlide.style.transformOrigin = `${initialPoint.x}px ${initialPoint.y - distTop}px`;
-            targetSlide.style.transform = `scale(${zoom_rate / 100})`;
+            targetSlide.style.transformOrigin = `${initialPoint.x}px ${initialPoint.y - distTop}px`
+            targetSlide.style.transform = `scale(${zoom_rate / 100})`
           }
         }
         // 제스처 유지 관련 변수 초기화
         if (gestureNow != 'HOLD') {
-          targetSlide.dispatchEvent(simulateMouseEvent('mouseup'));
-          holding = false;
+          targetSlide.dispatchEvent(simulateMouseEvent('mouseup'))
+          holding = false
         }
         if (gestureNow != 'ZOOM') {
-          zoom_ing = false;
+          zoom_ing = false
         }
-
-    }
+      }
     }
 
     //제스처 예측 및 처리
     const predictGesture = (landmarks): void => {
-      let update_flag: boolean = false;
-      let gesture: string = '???';
-      const last_data = history[history.length - 1]; // 가장 마지막에 인식된 제스처
+      let update_flag: boolean = false
+      let gesture: string = '???'
+      const last_data = history[history.length - 1] // 가장 마지막에 인식된 제스처
       const cur_location: Coordinate = {
         x: landmarks[0][8].x,
         y: landmarks[0][8].y
-      };
+      }
       const speed_per_frame: number =
         Math.sqrt(
           (cur_location.x - last_location.x) ** 2 + (cur_location.y - last_location.y) ** 2
@@ -375,76 +364,74 @@ function Presentation(): JSX.Element {
           }
         }
       } else {
-        gesture = last_data // 강제조정
+        gesture = last_data // 속도제어
       }
       history.push(gesture)
       last_location = cur_location
       checkClick(gesture, last_data, landmarks)
 
-      if(topCarouselRef.current.style.display!='none'){
+      if (topCarouselRef.current.style.display != 'none') {
         const canvas = gestureRef.current
         if (canvas) {
-          canvas.width = canvas.offsetWidth;
-          canvas.height = canvas.offsetHeight;
+          canvas.width = canvas.offsetWidth
+          canvas.height = canvas.offsetHeight
         }
         const ctx = canvas.getContext('2d')
         ctx.globalAlpha = '0.6'
         ctx.clearRect(0, 0, canvas.width, canvas.height)
-        const pointer  = getPointer(landmarks,canvas)
-        if (gesture == "HOLD" && last_data != "HOLD") {
-          tb_start_x = getPointer(landmarks,canvas).x;
-          tb_hold_ing = true;
-          tb_left = tb_start_x - standard;
-          tb_right = tb_start_x + standard;
-        } else if (gesture != "HOLD" && last_data == "HOLD") {
+        const pointer = getPointer(landmarks, canvas)
+        if (gesture == 'HOLD' && last_data != 'HOLD') {
+          tb_start_x = getPointer(landmarks, canvas).x
+          tb_hold_ing = true
+          tb_left = tb_start_x - standard
+          tb_right = tb_start_x + standard
+        } else if (gesture != 'HOLD' && last_data == 'HOLD') {
           carouselRef.current.slickGoTo(tb_index)
-          tb_hold_ing = false;
+          tb_hold_ing = false
         }
 
         if (tb_hold_ing) {
-          let tb_cur_x = getPointer(landmarks, canvas).x;
-          let move_dist = Math.abs(tb_start_x - tb_cur_x);
+          let tb_cur_x = getPointer(landmarks, canvas).x
+          let move_dist = Math.abs(tb_start_x - tb_cur_x)
           if (tb_cur_x < tb_start_x) {
             //왼쪽으로 움직이기, 상단탭 왼쪽으로이동
-            if (tb_cur_x < tb_left ) {
-              tb_left -= standard;
-              tb_right -= standard;
-              if(tb_index<selectedPdfList.length-1)tb_index += 1;
+            if (tb_cur_x < tb_left) {
+              tb_left -= standard
+              tb_right -= standard
+              if (tb_index < selectedPdfList.length - 1) tb_index += 1
 
               topSlideRef.forEach((el, index) => {
-                el.current.src =
-                  selectedPdfList[tb_index-2+index]?selectedPdfList[tb_index-2+index]:imgFallBack
+                el.current.src = selectedPdfList[tb_index - 2 + index]
+                  ? selectedPdfList[tb_index - 2 + index]
+                  : imgFallBack
               })
             }
-
           } else {
-            if (tb_cur_x > tb_right ) {
-              tb_left += standard;
-              tb_right += standard;
-              if(tb_index>0)tb_index -= 1;
-            topSlideRef.forEach((el, index) => {
-              el.current.src =
-                selectedPdfList[tb_index-2+index]? selectedPdfList[tb_index-2+index]:imgFallBack
-            })
+            if (tb_cur_x > tb_right) {
+              tb_left += standard
+              tb_right += standard
+              if (tb_index > 0) tb_index -= 1
+              topSlideRef.forEach((el, index) => {
+                el.current.src = selectedPdfList[tb_index - 2 + index]
+                  ? selectedPdfList[tb_index - 2 + index]
+                  : imgFallBack
+              })
             }
           }
         }
-        if(gesture =="HOLD"){
+        if (gesture == 'HOLD') {
           if (loadedImages[dragSrc]) {
-            ctx.drawImage(loadedImages[dragSrc], pointer.x, pointer.y,40,40);
+            ctx.drawImage(loadedImages[dragSrc], pointer.x, pointer.y, 40, 40)
           } else {
-            console.error('Image not preloaded:', dragSrc);
-          }  
-        }
-        else{
+            console.error('Image not preloaded:', dragSrc)
+          }
+        } else {
           ctx.fillStyle = 'blue'
           ctx.beginPath()
           ctx.arc(pointer.x, pointer.y, 10, 0, 2 * Math.PI)
           ctx.fill()
         }
-
-      }
-      else{
+      } else {
         drawLandmarks(landmarks, gesture)
       }
     }
@@ -461,30 +448,35 @@ function Presentation(): JSX.Element {
 
         /* 클릭 체크 */
         if (hold_start_time != null && hold_end_time.getTime() - hold_start_time.getTime() < 200) {
-          if(topCarouselRef.current.style.display=='none'&&pointer.y<window.innerHeight*3/10){
-            topCarouselRef.current.style.display='flex'
-            tb_index = carousel.innerSlider.state.currentSlide;
+          if (
+            topCarouselRef.current.style.display == 'none' &&
+            pointer.y < (window.innerHeight * 2.25) / 10
+          ) {
+            topCarouselRef.current.style.display = 'flex'
+            tb_index = carousel.innerSlider.state.currentSlide
             topSlideRef.forEach((el, index) => {
-              el.current.src =
-                selectedPdfList[tb_index-2+index]? selectedPdfList[tb_index-2+index]:imgFallBack
+              el.current.src = selectedPdfList[tb_index - 2 + index]
+                ? selectedPdfList[tb_index - 2 + index]
+                : imgFallBack
             })
-            slideRef.forEach((el ,index)=>{
-              el.current.style.marginBottom= '0';
-              el.current.style.transform = `scale(0.6) translateY(${(el.current.offsetHeight-el.current.offsetHeight*0.6)}px)`
-              el.current.style.objectFit= 'contain';
+            slideRef.forEach((el, index) => {
+              el.current.style.marginBottom = '0'
+              el.current.style.transform = `scale(0.6) translateY(${el.current.offsetHeight - el.current.offsetHeight * 0.6}px)`
+              el.current.style.objectFit = 'contain'
             })
             topCarouselRef.current.style.transform = `translateY(${topCarouselRef.current.offsetHeight}px)`
-          }
-          else if(topCarouselRef.current.style.display=='flex'&&pointer.y>topCarouselRef.current.offsetHeight){
-            slideRef.forEach((el)=>{
-              el.current.style.marginBottom =  'auto';
-              el.current.style.transform = `scale(1)`;
-              el.current.style.objectFit= 'contain';
+          } else if (
+            topCarouselRef.current.style.display == 'flex' &&
+            pointer.y > topCarouselRef.current.offsetHeight
+          ) {
+            slideRef.forEach((el) => {
+              el.current.style.marginBottom = 'auto'
+              el.current.style.transform = `scale(1)`
+              el.current.style.objectFit = 'contain'
             })
             topCarouselRef.current.style.transform = `translateY(${-topCarouselRef.current.offsetHeight}px)`
-            setTimeout(()=>topCarouselRef.current.style.display='none', 1000)
-          }
-          else{
+            setTimeout(() => (topCarouselRef.current.style.display = 'none'), 1000)
+          } else {
             element.dispatchEvent(
               new MouseEvent('click', {
                 bubbles: true,
@@ -492,20 +484,16 @@ function Presentation(): JSX.Element {
                 clientX: pointer.x,
                 clientY: pointer.y
               })
-              
             )
-            
-
           }
           is_clicked = true
-
         }
         /* 더블클릭 체크 */
-        if (temp != undefined && topCarouselRef.current.style.display=='none') {
+        if (temp != undefined && topCarouselRef.current.style.display == 'none') {
           if (
             is_clicked &&
-            hold_end_time.getTime() - temp.getTime() < 700 &&
-            hold_end_time.getTime() - last_click_time > 500
+            hold_end_time.getTime() - temp.getTime() < 600 &&
+            hold_end_time.getTime() - last_click_time > 700
           ) {
             element.dispatchEvent(
               new MouseEvent('dblclick', {
@@ -536,8 +524,8 @@ function Presentation(): JSX.Element {
           const ctx = canvas.getContext('2d')
           ctx.clearRect(0, 0, canvas.width, canvas.height)
           //손 사라질시 제스처 유지 관련 변수 초기화
-          if(history[history.length - 1]=="HOLD"){
-              targetSlide.dispatchEvent(simulateMouseEvent('mouseup'))
+          if (history[history.length - 1] == 'HOLD') {
+            targetSlide.dispatchEvent(simulateMouseEvent('mouseup'))
           }
           zoom_ing = false
         }
@@ -579,7 +567,6 @@ function Presentation(): JSX.Element {
       }
     }
   }, [])
-  
 
   return (
     <>
@@ -606,7 +593,7 @@ function Presentation(): JSX.Element {
                   }}
                 >
                   <img
-                  className='scale_transition'
+                    className="scale_transition"
                     src={url}
                     onDoubleClick={(e) => {
                       zoomWithDblClick(e)
@@ -614,12 +601,11 @@ function Presentation(): JSX.Element {
                     ref={slideRef[index]}
                     alt={`Page ${index + 1}`}
                     style={{
-                            margin: 'auto',
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain'
-                          }
-                    }
+                      margin: 'auto',
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain'
+                    }}
                   />
                 </div>
               </div>
@@ -643,7 +629,7 @@ function Presentation(): JSX.Element {
             boxShadow: '0 18px 15px 0px rgba(34, 34, 34, 0.3)'
           }}
         >
-          { 
+          {
             <>
               <img
                 ref={topSlideRef[0]}
@@ -652,7 +638,7 @@ function Presentation(): JSX.Element {
                 style={{
                   width: '19%',
                   height: '50%',
-                  objectFit: 'cover',
+                  objectFit: 'cover'
                 }}
               />
               <img

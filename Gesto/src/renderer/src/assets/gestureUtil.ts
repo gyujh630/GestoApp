@@ -75,7 +75,6 @@ function isFingerFold(landmarks, fingerNum, angle1, angle2, angle3): boolean {
     // 두 벡터가 이루는 각도 저장 - 한 관절이 접혔는지 판단하는 요소
     angles[i - 1] = getAngle(v1, v2)
   }
-  // console.log(fingerNum, angles);
   if (angles[0] >= angle1 && angles[1] >= angle2 && angles[2] >= angle3) {
     return true
   } else return false
@@ -181,9 +180,9 @@ export function getGesture(landmarks): string {
         isFingerFold(first_hand, 2, 20, 45, 0) &&
         areTipsFacing(first_hand, 1))
     ) {
-      if (areTipsTouching(first_hand, 1, 5)) {
+      if (areTipsTouching(first_hand, 1, hold_interpolate(first_hand))) {
         return 'HOLD'
-      } else if (areTipsTouching(first_hand, 1, 13)) {
+      } else if (areTipsTouching(first_hand, 1, 12)) {
         return 'POINTER'
       }
     }
@@ -210,7 +209,10 @@ export function getGesture(landmarks): string {
       isFingerFold(second_hand, 4, 20, 50, 10) &&
       isFingerFold(second_hand, 2, 20, 50, 10)
     ) {
-      if (areTipsTouching(first_hand, 1, 5) && areTipsTouching(second_hand, 1, 5)) {
+      if (
+        areTipsTouching(first_hand, 1, hold_interpolate(first_hand)) &&
+        areTipsTouching(second_hand, 1, hold_interpolate(second_hand))
+      ) {
         return 'ZOOM'
       } else {
         return 'ZOOM_POINTER'
@@ -235,12 +237,12 @@ export function getPointer(landmarks, canvas): Coordinate {
 // 줌 거리 반환 (두 손 엄지 사이)
 export function getZoomDistance(landmarks): number {
   if (landmarks[1] != undefined) {
-  const fst_hand = landmarks[0]
-  const sec_hand = landmarks[1]
-  const fst_idx = refactorCoordinate(fst_hand[4].x, fst_hand[4].y, fst_hand[4].z)
-  const sec_idx = refactorCoordinate(sec_hand[4].x, sec_hand[4].y, sec_hand[4].z)
-  return getDistance(fst_idx[0], fst_idx[1], fst_idx[2], sec_idx[0], sec_idx[1], sec_idx[2])
-  }else return 0
+    const fst_hand = landmarks[0]
+    const sec_hand = landmarks[1]
+    const fst_idx = refactorCoordinate(fst_hand[4].x, fst_hand[4].y, fst_hand[4].z)
+    const sec_idx = refactorCoordinate(sec_hand[4].x, sec_hand[4].y, sec_hand[4].z)
+    return getDistance(fst_idx[0], fst_idx[1], fst_idx[2], sec_idx[0], sec_idx[1], sec_idx[2])
+  } else return 0
 }
 
 // 캔버스에 그려야하는 포인터 좌표를 반환 (ZOOM, ZOOM_POINTER)
@@ -305,11 +307,11 @@ export function hold_interpolate(landmarks): number {
 
   // 기준이 되는 범위 설정
   const start: number = 5
-  const end: number = 250
+  const end: number = 230
 
   // 기준이 되는 숫자의 범위 설정
-  const minVal = 2
-  const maxVal = 10
+  const minVal = 2.3
+  const maxVal = 15
 
   const interpolate_standard = minVal + ((maxVal - minVal) * (cur_area - start)) / (end - start)
   return interpolate_standard
