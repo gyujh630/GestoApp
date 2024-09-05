@@ -1,6 +1,6 @@
 # GestoApp
 
-[[Template & Video]](https://softcon.ajou.ac.kr/works/works.asp?uid=1766)
+[[템플릿 & 시연 영상]](https://softcon.ajou.ac.kr/works/works.asp?uid=1766)
 
 # Table of Contents
 - [[1] About the Project](#1-about-the-project)
