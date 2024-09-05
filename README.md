@@ -16,7 +16,7 @@
   
 
 ## Features
-- 업로드한 pdf를 제스처로 화면 제어 가능
+- PDF 파일을 업로드하고, Guide에 있는 제스처를 사용해 화면을 제어할 수 있습니다.
 - tap, double tap, pointer, zoom, fast zoom, tab control
 
 
