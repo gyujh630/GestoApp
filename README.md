@@ -1,6 +1,6 @@
 # Gesto
 
-[![Watch the video](http://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://softcon.ajou.ac.kr/works/works.asp?uid=1766)
+[![Watch the video]](https://softcon.ajou.ac.kr/works/works.asp?uid=1766)
 
 # Table of Contents
 - [[1] About the Project](#1-about-the-project)
