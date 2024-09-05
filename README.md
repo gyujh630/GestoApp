@@ -1,6 +1,6 @@
-# Gesto
+# GestoApp
 
-[![Watch the video]](https://softcon.ajou.ac.kr/works/works.asp?uid=1766)
+[[Template & Video]](https://softcon.ajou.ac.kr/works/works.asp?uid=1766)
 
 # Table of Contents
 - [[1] About the Project](#1-about-the-project)
@@ -11,13 +11,13 @@
 
 
 # [1] About the Project
-
-- 제스처기반 프레젠테이션 툴
-- 웹기반에서의 제스처 인터페이스 활용 가능성 제시
+- 제스처 기반 프레젠테이션 툴
+- Vision Pro의 손동작 인식 및 조작 방식에 영감을 받아 제작했습니다.
+  
 
 ## Features
-- 업로드한 pdf를 제스처로 프레젠테이션 진행 가능
-- 프레젠테이션 포인터,진행,확대축소등의 기능 제공
+- 업로드한 pdf를 제스처로 화면 제어 가능
+- tap, double tap, pointer, zoom, fast zoom, tab control
 
 
 ## Technologies
